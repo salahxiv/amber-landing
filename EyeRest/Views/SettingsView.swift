@@ -46,6 +46,10 @@ struct SettingsView: View {
             }
         }
         .padding(.horizontal, 16)
+        .onChange(of: isExpanded) { _, _ in
+            // Panel-Größe aktualisieren
+            NotificationCenter.default.post(name: .settingsExpandedChanged, object: nil)
+        }
     }
 
     // MARK: - Timer Einstellungen

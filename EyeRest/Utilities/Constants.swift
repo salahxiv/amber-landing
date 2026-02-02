@@ -33,4 +33,5 @@ extension Notification.Name {
     static let breakEnded = Notification.Name("breakEnded")
     static let timerStateChanged = Notification.Name("timerStateChanged")
     static let settingsChanged = Notification.Name("settingsChanged")
+    static let settingsExpandedChanged = Notification.Name("settingsExpandedChanged")
 }

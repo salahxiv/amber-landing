@@ -41,6 +41,7 @@ struct MenuBarView: View {
                 .padding(.vertical, 8)
         }
         .frame(width: Constants.popoverWidth)
+        .fixedSize(horizontal: false, vertical: true)
     }
 
     // MARK: - Subviews

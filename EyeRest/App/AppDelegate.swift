@@ -23,6 +23,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         setupMenuPanel()
         setupOverlayWindow()
         observeTimerState()
+        observeSettingsExpanded()
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -45,8 +46,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Menu Panel Setup
 
     private func setupMenuPanel() {
+        // Erst die View erstellen um die ideale Größe zu berechnen
+        let menuBarView = MenuBarView(viewModel: timerViewModel) { [weak self] in
+            self?.quitApp()
+        }
+        let hostingView = NSHostingView(rootView: menuBarView)
+        let fittingSize = hostingView.fittingSize
+
         let panel = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: Constants.popoverWidth, height: Constants.popoverHeight),
+            contentRect: NSRect(x: 0, y: 0, width: fittingSize.width, height: fittingSize.height),
             styleMask: [.borderless, .nonactivatingPanel, .hudWindow],
             backing: .buffered,
             defer: false
@@ -63,20 +71,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panel.becomesKeyOnlyIfNeeded = true
 
         // Visual Effect Hintergrund
-        let visualEffect = NSVisualEffectView(frame: NSRect(x: 0, y: 0, width: Constants.popoverWidth, height: Constants.popoverHeight))
+        let visualEffect = NSVisualEffectView(frame: NSRect(x: 0, y: 0, width: fittingSize.width, height: fittingSize.height))
         visualEffect.material = .popover
         visualEffect.blendingMode = .behindWindow
         visualEffect.state = .active
         visualEffect.wantsLayer = true
         visualEffect.layer?.cornerRadius = 10
         visualEffect.layer?.masksToBounds = true
+        visualEffect.autoresizingMask = [.width, .height]
 
         panel.contentView = visualEffect
 
-        let menuBarView = MenuBarView(viewModel: timerViewModel) { [weak self] in
-            self?.quitApp()
-        }
-        let hostingView = NSHostingView(rootView: menuBarView)
         hostingView.frame = visualEffect.bounds
         hostingView.autoresizingMask = [.width, .height]
 
@@ -142,6 +147,46 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .store(in: &cancellables)
     }
 
+    private func observeSettingsExpanded() {
+        NotificationCenter.default.addObserver(
+            forName: .settingsExpandedChanged,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.updatePanelSize()
+        }
+    }
+
+    private func updatePanelSize() {
+        guard let panel = menuPanel,
+              let hostingView = menuHostingView,
+              panel.isVisible else { return }
+
+        // Kleine Verzögerung für Animation
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
+            guard let panel = self?.menuPanel,
+                  let hostingView = self?.menuHostingView else { return }
+
+            let newSize = hostingView.fittingSize
+            let currentFrame = panel.frame
+
+            // Neue Position berechnen (Panel wächst nach unten)
+            let newOrigin = NSPoint(
+                x: currentFrame.origin.x,
+                y: currentFrame.origin.y + currentFrame.height - newSize.height
+            )
+
+            NSAnimationContext.runAnimationGroup { context in
+                context.duration = 0.2
+                context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+                panel.animator().setFrame(
+                    NSRect(origin: newOrigin, size: newSize),
+                    display: true
+                )
+            }
+        }
+    }
+
     // MARK: - Menu Actions
 
     @objc private func toggleMenu() {
@@ -156,7 +201,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func showMenu(relativeTo button: NSStatusBarButton) {
-        guard let panel = menuPanel else { return }
+        guard let panel = menuPanel,
+              let hostingView = menuHostingView else { return }
+
+        // Größe neu berechnen basierend auf aktuellem Inhalt
+        let fittingSize = hostingView.fittingSize
+        panel.setContentSize(fittingSize)
 
         // Position berechnen
         let buttonRect = button.window?.convertToScreen(button.convert(button.bounds, to: nil)) ?? .zero
