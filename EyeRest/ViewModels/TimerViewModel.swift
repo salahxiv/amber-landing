@@ -185,6 +185,7 @@ final class TimerViewModel: ObservableObject {
     /// Überspringt die aktuelle Pause
     func skip() {
         guard state.phase == .rest else { return }
+        NotificationCenter.default.post(name: .breakSkipped, object: nil)
         transitionToNextPhase()
     }
 

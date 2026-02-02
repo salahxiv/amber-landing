@@ -31,7 +31,9 @@ enum Constants {
 extension Notification.Name {
     static let breakStarted = Notification.Name("breakStarted")
     static let breakEnded = Notification.Name("breakEnded")
+    static let breakSkipped = Notification.Name("breakSkipped")
     static let timerStateChanged = Notification.Name("timerStateChanged")
     static let settingsChanged = Notification.Name("settingsChanged")
     static let settingsExpandedChanged = Notification.Name("settingsExpandedChanged")
+    static let statisticsUpdated = Notification.Name("statisticsUpdated")
 }

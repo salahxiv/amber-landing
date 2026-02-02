@@ -4,6 +4,7 @@ import SwiftUI
 struct MenuBarView: View {
     @ObservedObject var viewModel: TimerViewModel
     @State private var settingsExpanded = false
+    @State private var statisticsExpanded = false
 
     let onQuit: () -> Void
 
@@ -27,6 +28,12 @@ struct MenuBarView: View {
                 ControlButtonsView(viewModel: viewModel)
             }
             .padding(.vertical, 20)
+
+            Divider()
+
+            // Statistiken
+            StatisticsView(isExpanded: $statisticsExpanded)
+                .padding(.vertical, 8)
 
             Divider()
 

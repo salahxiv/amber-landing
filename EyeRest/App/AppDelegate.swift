@@ -8,12 +8,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
     private var menuPanel: NSPanel?
     private var menuHostingView: NSHostingView<MenuBarView>?
-    private var overlayWindow: NSWindow?
-    private var overlayHostingView: NSHostingView<BreakOverlayView>?
+    private var overlayWindows: [NSWindow] = []  // Multi-Monitor Support
     private var eventMonitor: Any?
     private var localEventMonitor: Any?
 
     private let timerViewModel = TimerViewModel()
+    private let hotkeyService = HotkeyService.shared
     private var cancellables = Set<AnyCancellable>()
 
     // MARK: - App Lifecycle
@@ -21,14 +21,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         setupMenuBar()
         setupMenuPanel()
-        setupOverlayWindow()
+        setupOverlayWindows()
+        setupHotkey()
         observeTimerState()
         observeSettingsExpanded()
+        observeScreenChanges()
+
+        // Statistiken initialisieren
+        _ = StatisticsManager.shared
     }
 
     func applicationWillTerminate(_ notification: Notification) {
         timerViewModel.stop()
         stopEventMonitors()
+        hotkeyService.unregister()
     }
 
     // MARK: - Menu Bar Setup
@@ -91,11 +97,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.menuHostingView = hostingView
     }
 
-    // MARK: - Overlay Window Setup
+    // MARK: - Overlay Windows Setup (Multi-Monitor)
 
-    private func setupOverlayWindow() {
-        guard let screen = NSScreen.main else { return }
+    private func setupOverlayWindows() {
+        // Bestehende Windows entfernen
+        overlayWindows.forEach { $0.orderOut(nil) }
+        overlayWindows.removeAll()
 
+        // Für jeden Bildschirm ein Overlay-Window erstellen
+        for screen in NSScreen.screens {
+            let window = createOverlayWindow(for: screen)
+            overlayWindows.append(window)
+        }
+    }
+
+    private func createOverlayWindow(for screen: NSScreen) -> NSWindow {
         // NSPanel für bessere Vollbild-Kompatibilität
         let window = NSPanel(
             contentRect: screen.frame,
@@ -121,8 +137,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         window.contentView?.addSubview(hostingView)
 
-        self.overlayWindow = window
-        self.overlayHostingView = hostingView
+        return window
+    }
+
+    // MARK: - Hotkey Setup
+
+    private func setupHotkey() {
+        hotkeyService.register { [weak self] in
+            self?.timerViewModel.togglePause()
+        }
+    }
+
+    private func observeScreenChanges() {
+        // Reagiere auf Änderungen der Bildschirmkonfiguration
+        NotificationCenter.default.addObserver(
+            forName: NSApplication.didChangeScreenParametersNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.setupOverlayWindows()
+        }
     }
 
     // MARK: - State Observation
@@ -159,7 +193,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func updatePanelSize() {
         guard let panel = menuPanel,
-              let hostingView = menuHostingView,
+              menuHostingView != nil,
               panel.isVisible else { return }
 
         // Kleine Verzögerung für Animation
@@ -262,33 +296,43 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    // MARK: - Overlay Actions
+    // MARK: - Overlay Actions (Multi-Monitor)
 
     private func showOverlay() {
-        guard let window = overlayWindow else { return }
-
-        let mouseLocation = NSEvent.mouseLocation
-        let currentScreen = NSScreen.screens.first { $0.frame.contains(mouseLocation) } ?? NSScreen.main
-
-        guard let screen = currentScreen else { return }
-
-        window.setFrame(screen.frame, display: true)
-
-        if let contentView = window.contentView {
-            overlayHostingView?.frame = contentView.bounds
+        // Sicherstellen, dass für jeden Bildschirm ein Overlay existiert
+        let screens = NSScreen.screens
+        if overlayWindows.count != screens.count {
+            setupOverlayWindows()
         }
 
-        window.orderFrontRegardless()
+        // Alle Overlays auf allen Bildschirmen anzeigen
+        for (index, screen) in screens.enumerated() {
+            guard index < overlayWindows.count else { continue }
 
+            let window = overlayWindows[index]
+            window.setFrame(screen.frame, display: true)
+
+            if let contentView = window.contentView,
+               let hostingView = contentView.subviews.first as? NSHostingView<BreakOverlayView> {
+                hostingView.frame = contentView.bounds
+            }
+
+            window.orderFrontRegardless()
+        }
+
+        // Aktiviere die App und bringe das Hauptfenster nach vorne
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
             NSApp.activate(ignoringOtherApps: true)
-            self?.overlayWindow?.makeKeyAndOrderFront(nil)
-            self?.overlayWindow?.orderFrontRegardless()
+            // Erstes Fenster als Key-Window setzen
+            self?.overlayWindows.first?.makeKeyAndOrderFront(nil)
+            // Alle Fenster nochmal nach vorne bringen
+            self?.overlayWindows.forEach { $0.orderFrontRegardless() }
         }
     }
 
     private func hideOverlay() {
-        overlayWindow?.orderOut(nil)
+        // Alle Overlay-Fenster ausblenden
+        overlayWindows.forEach { $0.orderOut(nil) }
     }
 
     // MARK: - App Actions
