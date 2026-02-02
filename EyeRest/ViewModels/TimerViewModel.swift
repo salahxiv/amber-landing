@@ -13,6 +13,8 @@ final class TimerViewModel: ObservableObject {
 
     private var timer: AnyCancellable?
     private var cancellables = Set<AnyCancellable>()
+    private let settings = SettingsManager.shared
+    private let audioService = AudioService.shared
 
     // MARK: - Computed Properties
 
@@ -48,6 +50,7 @@ final class TimerViewModel: ObservableObject {
 
     init() {
         setupNotifications()
+        setupSettingsObserver()
     }
 
     deinit {
@@ -70,6 +73,24 @@ final class TimerViewModel: ObservableObject {
     private func handleSystemWake() {
         // Bei Systemaufwachen: Timer-Status beibehalten
         // Optional: Timer zurücksetzen oder fortsetzen
+    }
+
+    private func setupSettingsObserver() {
+        NotificationCenter.default.publisher(for: .settingsChanged)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.handleSettingsChanged()
+            }
+            .store(in: &cancellables)
+    }
+
+    private func handleSettingsChanged() {
+        // Wenn Timer im Idle-Zustand ist, aktualisiere die Anzeige mit neuen Einstellungen
+        if state.phase == .idle {
+            state.remainingSeconds = settings.workDuration
+            state.workDuration = settings.workDuration
+            state.restDuration = settings.restDuration
+        }
     }
 
     private func startTimer() {
@@ -101,15 +122,19 @@ final class TimerViewModel: ObservableObject {
         case .work:
             // Wechsel zur Pausenphase
             state.phase = .rest
-            state.remainingSeconds = Constants.restDuration
+            state.remainingSeconds = settings.restDuration
+            state.restDuration = settings.restDuration
             showBreakOverlay = true
+            audioService.playBreakStartSound()
             NotificationCenter.default.post(name: .breakStarted, object: nil)
 
         case .rest:
             // Wechsel zurück zur Arbeitsphase
             state.phase = .work
-            state.remainingSeconds = Constants.workDuration
+            state.remainingSeconds = settings.workDuration
+            state.workDuration = settings.workDuration
             showBreakOverlay = false
+            audioService.playBreakEndSound()
             NotificationCenter.default.post(name: .breakEnded, object: nil)
 
         case .idle:
@@ -122,7 +147,9 @@ final class TimerViewModel: ObservableObject {
     /// Startet den Timer
     func start() {
         state.phase = .work
-        state.remainingSeconds = Constants.workDuration
+        state.remainingSeconds = settings.workDuration
+        state.workDuration = settings.workDuration
+        state.restDuration = settings.restDuration
         state.isPaused = false
         startTimer()
     }

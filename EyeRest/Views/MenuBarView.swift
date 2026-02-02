@@ -1,10 +1,9 @@
 import SwiftUI
-import ServiceManagement
 
 /// Hauptansicht im Menüleisten-Popover
 struct MenuBarView: View {
     @ObservedObject var viewModel: TimerViewModel
-    @AppStorage(Constants.launchAtLoginKey) private var launchAtLogin = false
+    @State private var settingsExpanded = false
 
     let onQuit: () -> Void
 
@@ -32,7 +31,7 @@ struct MenuBarView: View {
             Divider()
 
             // Einstellungen
-            settingsView
+            SettingsView(isExpanded: $settingsExpanded)
                 .padding(.vertical, 8)
 
             Divider()
@@ -57,21 +56,6 @@ struct MenuBarView: View {
         }
     }
 
-    private var settingsView: some View {
-        Toggle(isOn: $launchAtLogin) {
-            HStack {
-                Image(systemName: "power")
-                    .foregroundColor(.secondary)
-                Text("Bei Login starten")
-            }
-        }
-        .toggleStyle(.checkbox)
-        .padding(.horizontal, 16)
-        .onChange(of: launchAtLogin) { _, newValue in
-            updateLaunchAtLogin(newValue)
-        }
-    }
-
     private var quitButton: some View {
         Button(action: onQuit) {
             HStack {
@@ -84,21 +68,6 @@ struct MenuBarView: View {
         .padding(.horizontal, 16)
     }
 
-    // MARK: - Actions
-
-    private func updateLaunchAtLogin(_ enabled: Bool) {
-        do {
-            if enabled {
-                try SMAppService.mainApp.register()
-            } else {
-                try SMAppService.mainApp.unregister()
-            }
-        } catch {
-            print("Fehler beim Ändern der Login-Einstellung: \(error)")
-            // Bei Fehler den Toggle zurücksetzen
-            launchAtLogin = !enabled
-        }
-    }
 }
 
 #Preview {

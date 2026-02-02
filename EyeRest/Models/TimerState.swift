@@ -12,14 +12,16 @@ struct TimerState {
     var phase: TimerPhase
     var remainingSeconds: Int
     var isPaused: Bool
+    var workDuration: Int
+    var restDuration: Int
 
     /// Gesamtdauer der aktuellen Phase in Sekunden
     var totalDuration: Int {
         switch phase {
         case .work:
-            return Constants.workDuration
+            return workDuration
         case .rest:
-            return Constants.restDuration
+            return restDuration
         case .idle:
             return 0
         }
@@ -53,12 +55,26 @@ struct TimerState {
         }
     }
 
-    /// Initial-Zustand
+    /// Initial-Zustand mit aktuellen Einstellungen
     static var initial: TimerState {
+        let settings = SettingsManager.shared
+        return TimerState(
+            phase: .idle,
+            remainingSeconds: settings.workDuration,
+            isPaused: false,
+            workDuration: settings.workDuration,
+            restDuration: settings.restDuration
+        )
+    }
+
+    /// Erstellt einen Initial-Zustand mit spezifischen Dauern
+    static func initial(workDuration: Int, restDuration: Int) -> TimerState {
         TimerState(
             phase: .idle,
-            remainingSeconds: Constants.workDuration,
-            isPaused: false
+            remainingSeconds: workDuration,
+            isPaused: false,
+            workDuration: workDuration,
+            restDuration: restDuration
         )
     }
 }

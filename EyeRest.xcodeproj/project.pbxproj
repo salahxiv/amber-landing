@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
+		B55F61D22F311D38005A46A0 /* EyeRest.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = EyeRest.xcodeproj; sourceTree = "<group>"; };
 		B5D9F20F2F311B190009CD68 /* EyeRest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = EyeRest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -29,6 +30,13 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		B55F61D42F311D38005A46A0 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		B5D9F2062F311B190009CD68 = {
 			isa = PBXGroup;
 			children = (
@@ -97,6 +105,12 @@
 			preferredProjectObjectVersion = 77;
 			productRefGroup = B5D9F2102F311B190009CD68 /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = B55F61D42F311D38005A46A0 /* Products */;
+					ProjectRef = B55F61D22F311D38005A46A0 /* EyeRest.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				B5D9F20E2F311B190009CD68 /* EyeRest */,

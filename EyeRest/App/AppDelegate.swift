@@ -6,9 +6,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Properties
 
     private var statusItem: NSStatusItem?
-    private var popover: NSPopover?
+    private var menuPanel: NSPanel?
+    private var menuHostingView: NSHostingView<MenuBarView>?
     private var overlayWindow: NSWindow?
     private var overlayHostingView: NSHostingView<BreakOverlayView>?
+    private var eventMonitor: Any?
+    private var localEventMonitor: Any?
 
     private let timerViewModel = TimerViewModel()
     private var cancellables = Set<AnyCancellable>()
@@ -17,13 +20,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         setupMenuBar()
-        setupPopover()
+        setupMenuPanel()
         setupOverlayWindow()
         observeTimerState()
     }
 
     func applicationWillTerminate(_ notification: Notification) {
         timerViewModel.stop()
+        stopEventMonitors()
     }
 
     // MARK: - Menu Bar Setup
@@ -33,28 +37,53 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         if let button = statusItem?.button {
             button.image = NSImage(systemSymbolName: "eye", accessibilityDescription: "Augen")
-            button.action = #selector(togglePopover)
+            button.action = #selector(toggleMenu)
             button.target = self
         }
     }
 
-    // MARK: - Popover Setup
+    // MARK: - Menu Panel Setup
 
-    private func setupPopover() {
-        let popover = NSPopover()
-        popover.contentSize = NSSize(
-            width: Constants.popoverWidth,
-            height: Constants.popoverHeight
+    private func setupMenuPanel() {
+        let panel = NSPanel(
+            contentRect: NSRect(x: 0, y: 0, width: Constants.popoverWidth, height: Constants.popoverHeight),
+            styleMask: [.borderless, .nonactivatingPanel, .hudWindow],
+            backing: .buffered,
+            defer: false
         )
-        popover.behavior = .transient
-        popover.animates = true
+
+        // Konfiguration für Vollbild-Kompatibilität
+        panel.level = .mainMenu + 1
+        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        panel.isOpaque = false
+        panel.backgroundColor = .clear
+        panel.hasShadow = true
+        panel.hidesOnDeactivate = false
+        panel.worksWhenModal = true
+        panel.becomesKeyOnlyIfNeeded = true
+
+        // Visual Effect Hintergrund
+        let visualEffect = NSVisualEffectView(frame: NSRect(x: 0, y: 0, width: Constants.popoverWidth, height: Constants.popoverHeight))
+        visualEffect.material = .popover
+        visualEffect.blendingMode = .behindWindow
+        visualEffect.state = .active
+        visualEffect.wantsLayer = true
+        visualEffect.layer?.cornerRadius = 10
+        visualEffect.layer?.masksToBounds = true
+
+        panel.contentView = visualEffect
 
         let menuBarView = MenuBarView(viewModel: timerViewModel) { [weak self] in
             self?.quitApp()
         }
-        popover.contentViewController = NSHostingController(rootView: menuBarView)
+        let hostingView = NSHostingView(rootView: menuBarView)
+        hostingView.frame = visualEffect.bounds
+        hostingView.autoresizingMask = [.width, .height]
 
-        self.popover = popover
+        visualEffect.addSubview(hostingView)
+
+        self.menuPanel = panel
+        self.menuHostingView = hostingView
     }
 
     // MARK: - Overlay Window Setup
@@ -62,19 +91,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func setupOverlayWindow() {
         guard let screen = NSScreen.main else { return }
 
-        let window = NSWindow(
+        // NSPanel für bessere Vollbild-Kompatibilität
+        let window = NSPanel(
             contentRect: screen.frame,
-            styleMask: [.borderless],
+            styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
         )
 
-        window.level = .floating
+        // Gleiche Konfiguration wie menuPanel für Vollbild-Support
+        window.level = .mainMenu + 2
+        window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         window.backgroundColor = NSColor.black.withAlphaComponent(0.85)
         window.isOpaque = false
         window.hasShadow = false
         window.ignoresMouseEvents = false
-        window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        window.hidesOnDeactivate = false
+        window.worksWhenModal = true
 
         let overlayView = BreakOverlayView(viewModel: timerViewModel)
         let hostingView = NSHostingView(rootView: overlayView)
@@ -90,7 +123,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - State Observation
 
     private func observeTimerState() {
-        // Beobachte Overlay-Status
         timerViewModel.$showBreakOverlay
             .receive(on: DispatchQueue.main)
             .sink { [weak self] showOverlay in
@@ -102,7 +134,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             .store(in: &cancellables)
 
-        // Beobachte Icon-Änderungen
         timerViewModel.$state
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
@@ -111,19 +142,38 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .store(in: &cancellables)
     }
 
-    // MARK: - Menu Bar Actions
+    // MARK: - Menu Actions
 
-    @objc private func togglePopover() {
-        guard let button = statusItem?.button else { return }
+    @objc private func toggleMenu() {
+        guard let button = statusItem?.button,
+              let panel = menuPanel else { return }
 
-        if let popover = popover, popover.isShown {
-            popover.performClose(nil)
+        if panel.isVisible {
+            hideMenu()
         } else {
-            popover?.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
-
-            // Fokus auf das Popover setzen
-            popover?.contentViewController?.view.window?.makeKey()
+            showMenu(relativeTo: button)
         }
+    }
+
+    private func showMenu(relativeTo button: NSStatusBarButton) {
+        guard let panel = menuPanel else { return }
+
+        // Position berechnen
+        let buttonRect = button.window?.convertToScreen(button.convert(button.bounds, to: nil)) ?? .zero
+        let panelOrigin = NSPoint(
+            x: buttonRect.midX - panel.frame.width / 2,
+            y: buttonRect.minY - panel.frame.height - 4
+        )
+
+        panel.setFrameOrigin(panelOrigin)
+        panel.orderFrontRegardless()
+
+        startEventMonitors()
+    }
+
+    private func hideMenu() {
+        menuPanel?.orderOut(nil)
+        stopEventMonitors()
     }
 
     private func updateMenuBarIcon() {
@@ -133,17 +183,57 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    // MARK: - Event Monitors
+
+    private func startEventMonitors() {
+        // Global: Klicks außerhalb der App
+        eventMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
+            self?.hideMenu()
+        }
+
+        // Lokal: Escape-Taste
+        localEventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            if event.keyCode == 53 { // Escape
+                self?.hideMenu()
+                return nil
+            }
+            return event
+        }
+    }
+
+    private func stopEventMonitors() {
+        if let monitor = eventMonitor {
+            NSEvent.removeMonitor(monitor)
+            eventMonitor = nil
+        }
+        if let monitor = localEventMonitor {
+            NSEvent.removeMonitor(monitor)
+            localEventMonitor = nil
+        }
+    }
+
     // MARK: - Overlay Actions
 
     private func showOverlay() {
-        guard let screen = NSScreen.main else { return }
+        guard let window = overlayWindow else { return }
 
-        overlayWindow?.setFrame(screen.frame, display: true)
-        overlayWindow?.makeKeyAndOrderFront(nil)
+        let mouseLocation = NSEvent.mouseLocation
+        let currentScreen = NSScreen.screens.first { $0.frame.contains(mouseLocation) } ?? NSScreen.main
 
-        // Aktualisiere die Hosting-View-Größe
-        if let contentView = overlayWindow?.contentView {
+        guard let screen = currentScreen else { return }
+
+        window.setFrame(screen.frame, display: true)
+
+        if let contentView = window.contentView {
             overlayHostingView?.frame = contentView.bounds
+        }
+
+        window.orderFrontRegardless()
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
+            NSApp.activate(ignoringOtherApps: true)
+            self?.overlayWindow?.makeKeyAndOrderFront(nil)
+            self?.overlayWindow?.orderFrontRegardless()
         }
     }
 
