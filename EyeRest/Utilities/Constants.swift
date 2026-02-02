@@ -25,6 +25,11 @@ enum Constants {
     static let workDurationKey = "workDuration"
     static let restDurationKey = "restDuration"
     static let soundEnabledKey = "soundEnabled"
+
+    // Tip Jar Product IDs (App Store Connect)
+    static let tipSmall = "com.devsalah.eyerest.tip.small"      // $0.99
+    static let tipMedium = "com.devsalah.eyerest.tip.medium"    // $2.99
+    static let tipLarge = "com.devsalah.eyerest.tip.large"      // $4.99
 }
 
 // Notification Names für App-Events

@@ -5,6 +5,7 @@ struct MenuBarView: View {
     @ObservedObject var viewModel: TimerViewModel
     @State private var settingsExpanded = false
     @State private var statisticsExpanded = false
+    @State private var tipJarExpanded = false
 
     let onQuit: () -> Void
 
@@ -39,6 +40,12 @@ struct MenuBarView: View {
 
             // Einstellungen
             SettingsView(isExpanded: $settingsExpanded)
+                .padding(.vertical, 8)
+
+            Divider()
+
+            // Tip Jar
+            TipJarView(isExpanded: $tipJarExpanded)
                 .padding(.vertical, 8)
 
             Divider()
