@@ -1,6 +1,7 @@
 import Foundation
 import StoreKit
 import Combine
+import AppKit
 
 /// Service für In-App Purchase Tip Jar
 @MainActor
@@ -22,11 +23,50 @@ final class TipJarService: ObservableObject {
         Constants.tipLarge
     ]
 
+    private var transactionListener: Task<Void, Error>?
+    private var purchaseWindow: NSWindow?
+
     // MARK: - Initialization
 
     private init() {
+        // Transaction Listener starten
+        transactionListener = listenForTransactions()
+
         Task {
             await loadProducts()
+        }
+    }
+
+    deinit {
+        transactionListener?.cancel()
+    }
+
+    // MARK: - Transaction Listener
+
+    /// Lauscht auf Transaction-Updates (wichtig für StoreKit 2)
+    private func listenForTransactions() -> Task<Void, Error> {
+        return Task { @MainActor in
+            for await result in Transaction.updates {
+                await self.handleTransaction(result)
+            }
+        }
+    }
+
+    /// Verarbeitet eine Transaction
+    private func handleTransaction(_ result: VerificationResult<Transaction>) async {
+        switch result {
+        case .verified(let transaction):
+            // Transaktion abschließen
+            await transaction.finish()
+
+            // UI aktualisieren
+            showThankYou = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                self.showThankYou = false
+            }
+
+        case .unverified(_, _):
+            break
         }
     }
 
@@ -48,46 +88,98 @@ final class TipJarService: ObservableObject {
         isLoading = false
     }
 
+    // MARK: - Purchase Window Helper
+
+    /// Hilfsklasse für ein Fenster das Key werden kann
+    private class KeyableWindow: NSWindow {
+        override var canBecomeKey: Bool { true }
+        override var canBecomeMain: Bool { true }
+    }
+
+    /// Erstellt ein unsichtbares Fenster für StoreKit-Dialog
+    private func showPurchaseWindow() {
+        let window = KeyableWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 1, height: 1),
+            styleMask: [.borderless],
+            backing: .buffered,
+            defer: false
+        )
+        window.isOpaque = false
+        window.backgroundColor = .clear
+        window.hasShadow = false
+        window.level = .floating
+        window.setFrameOrigin(NSPoint(x: -100, y: -100)) // Außerhalb des Bildschirms
+        window.orderFrontRegardless()
+        window.makeKey()
+
+        purchaseWindow = window
+    }
+
+    private func hidePurchaseWindow() {
+        purchaseWindow?.orderOut(nil)
+        purchaseWindow = nil
+    }
+
     /// Kauft ein Tip-Produkt
     func purchase(_ product: Product) async {
         isLoading = true
         purchaseError = nil
 
-        do {
-            let result = try await product.purchase()
+        // Unsichtbares Fenster für StoreKit-Dialog
+        showPurchaseWindow()
 
-            switch result {
-            case .success(let verification):
-                switch verification {
-                case .verified(_):
-                    // Kauf erfolgreich
-                    showThankYou = true
-                    await MainActor.run {
-                        // Nach 3 Sekunden ausblenden
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                            self.showThankYou = false
-                        }
-                    }
+        // App aktivieren
+        NSApp.activate(ignoringOtherApps: true)
 
-                case .unverified(_, _):
-                    purchaseError = "Kauf konnte nicht verifiziert werden"
-                }
-
-            case .userCancelled:
-                break
-
-            case .pending:
-                purchaseError = "Kauf ausstehend"
-
-            @unknown default:
-                break
+        // Purchase in einem separaten Task ohne MainActor ausführen
+        let purchaseResult = await Task.detached { () -> Result<Product.PurchaseResult, Error> in
+            do {
+                let result = try await product.purchase()
+                return .success(result)
+            } catch {
+                return .failure(error)
             }
-        } catch {
+        }.value
+
+        // Ergebnis verarbeiten
+        switch purchaseResult {
+        case .success(let result):
+            await handlePurchaseResult(result)
+        case .failure:
             purchaseError = "Kauf fehlgeschlagen"
-            print("TipJarService: Fehler beim Kauf: \(error)")
         }
 
         isLoading = false
+        hidePurchaseWindow()
+    }
+
+    /// Verarbeitet das Kaufergebnis
+    private func handlePurchaseResult(_ result: Product.PurchaseResult) async {
+        switch result {
+        case .success(let verification):
+            switch verification {
+            case .verified(let transaction):
+                await transaction.finish()
+
+                showThankYou = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                    self.showThankYou = false
+                }
+
+            case .unverified:
+                purchaseError = "Kauf konnte nicht verifiziert werden"
+            }
+
+        case .userCancelled:
+            // Benutzer hat abgebrochen - kein Fehler
+            break
+
+        case .pending:
+            purchaseError = "Kauf ausstehend"
+
+        @unknown default:
+            break
+        }
     }
 }
 

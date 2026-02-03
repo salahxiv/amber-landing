@@ -189,6 +189,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         ) { [weak self] _ in
             self?.updatePanelSize()
         }
+
+        // Beobachte Anfragen zum Schließen des Panels (z.B. für StoreKit)
+        NotificationCenter.default.addObserver(
+            forName: .closeMenuPanel,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.hideMenu()
+        }
     }
 
     private func updatePanelSize() {

@@ -4,7 +4,7 @@ import StoreKit
 /// Ansicht für Tip Jar im Menüleisten-Popover
 struct TipJarView: View {
     @Binding var isExpanded: Bool
-    @StateObject private var tipJar = TipJarService.shared
+    @ObservedObject private var tipJar = TipJarService.shared
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {

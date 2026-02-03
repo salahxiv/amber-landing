@@ -41,4 +41,5 @@ extension Notification.Name {
     static let settingsChanged = Notification.Name("settingsChanged")
     static let settingsExpandedChanged = Notification.Name("settingsExpandedChanged")
     static let statisticsUpdated = Notification.Name("statisticsUpdated")
+    static let closeMenuPanel = Notification.Name("closeMenuPanel")
 }
