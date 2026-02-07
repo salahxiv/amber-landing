@@ -27,6 +27,18 @@ final class SettingsManager: ObservableObject {
         }
     }
 
+    @Published var dndEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(dndEnabled, forKey: Constants.dndEnabledKey)
+        }
+    }
+
+    @Published var calendarSyncEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(calendarSyncEnabled, forKey: Constants.calendarSyncEnabledKey)
+        }
+    }
+
     // MARK: - Initialization
 
     private init() {
@@ -37,6 +49,10 @@ final class SettingsManager: ObservableObject {
             ?? Constants.defaultRestDuration
         self.soundEnabled = UserDefaults.standard.object(forKey: Constants.soundEnabledKey) as? Bool
             ?? true
+        self.dndEnabled = UserDefaults.standard.object(forKey: Constants.dndEnabledKey) as? Bool
+            ?? false
+        self.calendarSyncEnabled = UserDefaults.standard.object(forKey: Constants.calendarSyncEnabledKey) as? Bool
+            ?? false
     }
 
     // MARK: - Helper Methods

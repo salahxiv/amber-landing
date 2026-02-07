@@ -25,6 +25,8 @@ enum Constants {
     static let workDurationKey = "workDuration"
     static let restDurationKey = "restDuration"
     static let soundEnabledKey = "soundEnabled"
+    static let dndEnabledKey = "dndEnabled"
+    static let calendarSyncEnabledKey = "calendarSyncEnabled"
 
     // Tip Jar Product IDs (App Store Connect)
     static let tipSmall = "com.devsalah.eyerest.tip.small"      // $0.99

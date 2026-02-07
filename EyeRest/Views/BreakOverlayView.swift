@@ -38,16 +38,22 @@ struct BreakOverlayView: View {
                         .stroke(Color.white.opacity(0.2), lineWidth: 6)
                         .frame(width: 120, height: 120)
 
-                    // Fortschritts-Kreis
+                    // Fortschritts-Kreis mit Gradient und Glow
                     Circle()
                         .trim(from: 0, to: viewModel.progress)
                         .stroke(
-                            Color.green,
+                            AngularGradient(
+                                colors: [.green, .mint, .green],
+                                center: .center,
+                                startAngle: .degrees(-90),
+                                endAngle: .degrees(270)
+                            ),
                             style: StrokeStyle(lineWidth: 6, lineCap: .round)
                         )
                         .frame(width: 120, height: 120)
                         .rotationEffect(.degrees(-90))
-                        .animation(.linear(duration: 1), value: viewModel.progress)
+                        .shadow(color: .green.opacity(0.6), radius: 10)
+                        .animation(.easeInOut(duration: 0.3), value: viewModel.progress)
 
                     // Zeit
                     VStack(spacing: 2) {

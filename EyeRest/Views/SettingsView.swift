@@ -8,26 +8,30 @@ struct SettingsView: View {
     @Binding var isExpanded: Bool
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 0) {
             // Header mit Expand/Collapse Toggle
             Button(action: { withAnimation(.easeInOut(duration: 0.2)) { isExpanded.toggle() } }) {
-                HStack {
+                HStack(spacing: 8) {
                     Image(systemName: "gearshape")
+                        .font(.system(size: 13))
                         .foregroundColor(.secondary)
+                        .frame(width: 16)
                     Text("Einstellungen")
-                        .font(.subheadline.weight(.medium))
+                        .font(.system(size: 13))
                     Spacer()
-                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 10, weight: .semibold))
                         .foregroundColor(.secondary)
-                        .font(.caption)
+                        .rotationEffect(.degrees(isExpanded ? 90 : 0))
                 }
-                .padding(.vertical, 8)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
 
             if isExpanded {
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: 12) {
                     // Timer Einstellungen
                     timerSettingsSection
 
@@ -38,14 +42,24 @@ struct SettingsView: View {
 
                     Divider()
 
+                    // Nicht stören Modus
+                    dndSection
+
+                    Divider()
+
+                    // Kalender-Sync
+                    calendarSection
+
+                    Divider()
+
                     // Bei Login starten
                     launchAtLoginSection
                 }
-                .padding(.leading, 4)
+                .padding(.horizontal, 12)
+                .padding(.bottom, 6)
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
-        .padding(.horizontal, 16)
         .onChange(of: isExpanded) { _, _ in
             // Panel-Größe aktualisieren
             NotificationCenter.default.post(name: .settingsExpandedChanged, object: nil)
@@ -112,6 +126,46 @@ struct SettingsView: View {
             }
             .toggleStyle(.checkbox)
             .font(.subheadline)
+        }
+    }
+
+    // MARK: - Nicht stören Modus
+
+    private var dndSection: some View {
+        Toggle(isOn: $settings.dndEnabled) {
+            HStack {
+                Image(systemName: "moon.fill")
+                    .foregroundColor(.purple)
+                    .frame(width: 20)
+                Text("Nicht stören (Fullscreen)")
+            }
+        }
+        .toggleStyle(.checkbox)
+        .font(.subheadline)
+        .help("Pausen automatisch überspringen wenn eine Fullscreen-App aktiv ist")
+    }
+
+    // MARK: - Kalender-Sync
+
+    private var calendarSection: some View {
+        Toggle(isOn: $settings.calendarSyncEnabled) {
+            HStack {
+                Image(systemName: "calendar")
+                    .foregroundColor(.red)
+                    .frame(width: 20)
+                Text("Bei Terminen pausieren")
+            }
+        }
+        .toggleStyle(.checkbox)
+        .font(.subheadline)
+        .onChange(of: settings.calendarSyncEnabled) { _, newValue in
+            if newValue {
+                Task {
+                    let granted = await CalendarService.shared.requestAccess()
+                    print("Kalender-Berechtigung: \(granted ? "Gewährt" : "Abgelehnt")")
+                    // Toggle bleibt an - Benutzer kann in Systemeinstellungen Berechtigung erteilen
+                }
+            }
         }
     }
 

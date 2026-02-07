@@ -15,6 +15,8 @@ final class TimerViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private let settings = SettingsManager.shared
     private let audioService = AudioService.shared
+    private let dndService = DndService.shared
+    private let calendarService = CalendarService.shared
 
     // MARK: - Computed Properties
 
@@ -117,9 +119,29 @@ final class TimerViewModel: ObservableObject {
         }
     }
 
+    private func shouldSkipBreak() -> Bool {
+        // Fullscreen-Apps Check
+        if settings.dndEnabled && dndService.isFullscreenAppActive() {
+            return true
+        }
+
+        // Kalender-Termin Check
+        if settings.calendarSyncEnabled && calendarService.isEventInProgress() {
+            return true
+        }
+
+        return false
+    }
+
     private func transitionToNextPhase() {
         switch state.phase {
         case .work:
+            // DND-Check: Bei Fullscreen-App die Pause überspringen
+            if shouldSkipBreak() {
+                state.remainingSeconds = settings.workDuration
+                return
+            }
+
             // Wechsel zur Pausenphase
             state.phase = .rest
             state.remainingSeconds = settings.restDuration

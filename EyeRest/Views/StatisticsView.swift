@@ -14,30 +14,31 @@ struct StatisticsView: View {
                 }
                 NotificationCenter.default.post(name: .settingsExpandedChanged, object: nil)
             }) {
-                HStack {
+                HStack(spacing: 8) {
                     Image(systemName: "chart.bar.fill")
+                        .font(.system(size: 13))
                         .foregroundColor(.blue)
+                        .frame(width: 16)
 
                     Text("Statistiken")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
+                        .font(.system(size: 13))
 
                     Spacer()
 
                     Image(systemName: "chevron.right")
-                        .font(.caption)
+                        .font(.system(size: 10, weight: .semibold))
                         .foregroundColor(.secondary)
                         .rotationEffect(.degrees(isExpanded ? 90 : 0))
                 }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
 
             // Erweiterte Statistiken
             if isExpanded {
-                VStack(spacing: 12) {
+                VStack(spacing: 6) {
                     // Heute
                     StatisticRowView(
                         title: "Heute",
@@ -71,8 +72,8 @@ struct StatisticsView: View {
                         )
                     }
                 }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 8)
+                .padding(.horizontal, 12)
+                .padding(.bottom, 6)
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }

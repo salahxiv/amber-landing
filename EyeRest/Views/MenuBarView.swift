@@ -34,25 +34,21 @@ struct MenuBarView: View {
 
             // Statistiken
             StatisticsView(isExpanded: $statisticsExpanded)
-                .padding(.vertical, 8)
 
             Divider()
 
             // Einstellungen
             SettingsView(isExpanded: $settingsExpanded)
-                .padding(.vertical, 8)
 
             Divider()
 
             // Tip Jar
             TipJarView(isExpanded: $tipJarExpanded)
-                .padding(.vertical, 8)
 
             Divider()
 
             // Beenden Button
             quitButton
-                .padding(.vertical, 8)
         }
         .frame(width: Constants.popoverWidth)
         .fixedSize(horizontal: false, vertical: true)
@@ -73,14 +69,20 @@ struct MenuBarView: View {
 
     private var quitButton: some View {
         Button(action: onQuit) {
-            HStack {
+            HStack(spacing: 8) {
                 Image(systemName: "xmark.circle")
+                    .font(.system(size: 13))
                     .foregroundColor(.secondary)
-                Text("Quit EyeRest")
+                    .frame(width: 16)
+                Text("Beenden")
+                    .font(.system(size: 13))
+                Spacer()
             }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .padding(.horizontal, 16)
     }
 
 }

@@ -15,30 +15,31 @@ struct TipJarView: View {
                 }
                 NotificationCenter.default.post(name: .settingsExpandedChanged, object: nil)
             }) {
-                HStack {
+                HStack(spacing: 8) {
                     Image(systemName: "heart.fill")
+                        .font(.system(size: 13))
                         .foregroundColor(.pink)
+                        .frame(width: 16)
 
                     Text("Tip Jar")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
+                        .font(.system(size: 13))
 
                     Spacer()
 
                     Image(systemName: "chevron.right")
-                        .font(.caption)
+                        .font(.system(size: 10, weight: .semibold))
                         .foregroundColor(.secondary)
                         .rotationEffect(.degrees(isExpanded ? 90 : 0))
                 }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
 
             // Erweiterte Optionen
             if isExpanded {
-                VStack(spacing: 10) {
+                VStack(spacing: 6) {
                     if tipJar.showThankYou {
                         // Danke-Nachricht
                         thankYouView
@@ -46,14 +47,14 @@ struct TipJarView: View {
                         // Laden
                         ProgressView()
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 20)
+                            .padding(.vertical, 12)
                     } else if tipJar.tips.isEmpty {
                         // Keine Produkte
                         Text("Nicht verfügbar")
                             .font(.caption)
                             .foregroundColor(.secondary)
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
+                            .padding(.vertical, 8)
                     } else {
                         // Tip Buttons
                         ForEach(tipJar.tips, id: \.id) { product in
@@ -72,8 +73,8 @@ struct TipJarView: View {
                             .foregroundColor(.red)
                     }
                 }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 8)
+                .padding(.horizontal, 12)
+                .padding(.bottom, 6)
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
