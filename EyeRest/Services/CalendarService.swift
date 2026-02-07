@@ -21,14 +21,23 @@ final class CalendarService {
         print("Kalender-Status: \(status.rawValue)")
 
         // Wenn bereits autorisiert, return true
+        #if os(macOS)
         if #available(macOS 14.0, *) {
             if status == .fullAccess { return true }
         } else {
             if status == .authorized { return true }
         }
+        #else
+        if #available(iOS 17.0, *) {
+            if status == .fullAccess { return true }
+        } else {
+            if status == .authorized { return true }
+        }
+        #endif
 
         // Berechtigung anfordern
         do {
+            #if os(macOS)
             if #available(macOS 14.0, *) {
                 let result = try await eventStore.requestFullAccessToEvents()
                 print("Kalender requestFullAccess Result: \(result)")
@@ -38,20 +47,38 @@ final class CalendarService {
                 print("Kalender requestAccess Result: \(result)")
                 return result
             }
+            #else
+            if #available(iOS 17.0, *) {
+                let result = try await eventStore.requestFullAccessToEvents()
+                print("Kalender requestFullAccess Result: \(result)")
+                return result
+            } else {
+                let result = try await eventStore.requestAccess(to: .event)
+                print("Kalender requestAccess Result: \(result)")
+                return result
+            }
+            #endif
         } catch {
             print("Kalender-Zugriff fehlgeschlagen: \(error)")
-            // Trotzdem true zurückgeben - vielleicht funktioniert es ohne explizite Berechtigung
             return true
         }
     }
 
     /// Prüft ob Kalender-Zugriff gewährt wurde
     var hasAccess: Bool {
+        #if os(macOS)
         if #available(macOS 14.0, *) {
             return authorizationStatus == .fullAccess
         } else {
             return authorizationStatus == .authorized
         }
+        #else
+        if #available(iOS 17.0, *) {
+            return authorizationStatus == .fullAccess
+        } else {
+            return authorizationStatus == .authorized
+        }
+        #endif
     }
 
     // MARK: - Event Check

@@ -8,25 +8,88 @@
 
 /* Begin PBXBuildFile section */
 		B55F61FA2F313D80005A46A0 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B55F61F92F313D80005A46A0 /* StoreKit.framework */; };
+		B5AA00132F3B000000000001 /* EyeRestWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = B5AA00032F3B000000000001 /* EyeRestWidgetExtension.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		B5AA00102F3B000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B5D9F2072F311B190009CD68 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B5AA00022F3B000000000001;
+			remoteInfo = EyeRestWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		B5AA00122F3B000000000001 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				B5AA00132F3B000000000001 /* EyeRestWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		B55F61D22F311D38005A46A0 /* EyeRest.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = EyeRest.xcodeproj; sourceTree = "<group>"; };
 		B55F61F92F313D80005A46A0 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
+		B58EE84C2F36D0CF0095B8FD /* EyeRest.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = EyeRest.xcodeproj; sourceTree = "<group>"; };
+		B58EE9872F36D7820095B8FD /* EyeRest.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = EyeRest.xcodeproj; sourceTree = "<group>"; };
+		B5AA00032F3B000000000001 /* EyeRestWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = EyeRestWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		B5C24FBC2F327E5000137A3A /* EyeRest.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = EyeRest.xcodeproj; sourceTree = "<group>"; };
 		B5D9F20F2F311B190009CD68 /* EyeRest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = EyeRest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B5F040482F32865C00823575 /* EyeRest.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = EyeRest.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		B5AA00012F3A000000000001 /* Exceptions for "EyeRest" folder in "EyeRest" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = B5D9F20E2F311B190009CD68 /* EyeRest */;
+		};
+		B5AA00142F3B000000000002 /* Exceptions for "EyeRestWidgetExtension" folder in "EyeRestWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = B5AA00022F3B000000000001 /* EyeRestWidgetExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		B5AA00042F3B000000000001 /* EyeRestWidgetExtension */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				B5AA00142F3B000000000002 /* Exceptions for "EyeRestWidgetExtension" folder in "EyeRestWidgetExtension" target */,
+			);
+			path = EyeRestWidgetExtension;
+			sourceTree = "<group>";
+		};
 		B5D9F2112F311B190009CD68 /* EyeRest */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				B5AA00012F3A000000000001 /* Exceptions for "EyeRest" folder in "EyeRest" target */,
+			);
 			path = EyeRest;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		B5AA00052F3B000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		B5D9F20C2F311B190009CD68 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -53,6 +116,20 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		B58EE84F2F36D0CF0095B8FD /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		B58EE98A2F36D7820095B8FD /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		B5C24FBF2F327E5000137A3A /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -64,6 +141,7 @@
 			isa = PBXGroup;
 			children = (
 				B5D9F2112F311B190009CD68 /* EyeRest */,
+				B5AA00042F3B000000000001 /* EyeRestWidgetExtension */,
 				B55F61F82F313D80005A46A0 /* Frameworks */,
 				B5D9F2102F311B190009CD68 /* Products */,
 			);
@@ -73,6 +151,7 @@
 			isa = PBXGroup;
 			children = (
 				B5D9F20F2F311B190009CD68 /* EyeRest.app */,
+				B5AA00032F3B000000000001 /* EyeRestWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -87,6 +166,28 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		B5AA00022F3B000000000001 /* EyeRestWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B5AA000D2F3B000000000001 /* Build configuration list for PBXNativeTarget "EyeRestWidgetExtension" */;
+			buildPhases = (
+				B5AA00062F3B000000000001 /* Sources */,
+				B5AA00052F3B000000000001 /* Frameworks */,
+				B5AA00072F3B000000000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				B5AA00042F3B000000000001 /* EyeRestWidgetExtension */,
+			);
+			name = EyeRestWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = EyeRestWidgetExtension;
+			productReference = B5AA00032F3B000000000001 /* EyeRestWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		B5D9F20E2F311B190009CD68 /* EyeRest */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = B5D9F21A2F311B1B0009CD68 /* Build configuration list for PBXNativeTarget "EyeRest" */;
@@ -94,10 +195,12 @@
 				B5D9F20B2F311B190009CD68 /* Sources */,
 				B5D9F20C2F311B190009CD68 /* Frameworks */,
 				B5D9F20D2F311B190009CD68 /* Resources */,
+				B5AA00122F3B000000000001 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				B5AA00112F3B000000000001 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				B5D9F2112F311B190009CD68 /* EyeRest */,
@@ -119,6 +222,9 @@
 				LastSwiftUpdateCheck = 2600;
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
+					B5AA00022F3B000000000001 = {
+						CreatedOnToolsVersion = 26.0;
+					};
 					B5D9F20E2F311B190009CD68 = {
 						CreatedOnToolsVersion = 26.0;
 					};
@@ -138,6 +244,10 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
+					ProductGroup = B58EE84F2F36D0CF0095B8FD /* Products */;
+					ProjectRef = B58EE84C2F36D0CF0095B8FD /* EyeRest.xcodeproj */;
+				},
+				{
 					ProductGroup = B55F61D42F311D38005A46A0 /* Products */;
 					ProjectRef = B55F61D22F311D38005A46A0 /* EyeRest.xcodeproj */;
 				},
@@ -149,15 +259,27 @@
 					ProductGroup = B5F0404B2F32865C00823575 /* Products */;
 					ProjectRef = B5F040482F32865C00823575 /* EyeRest.xcodeproj */;
 				},
+				{
+					ProductGroup = B58EE98A2F36D7820095B8FD /* Products */;
+					ProjectRef = B58EE9872F36D7820095B8FD /* EyeRest.xcodeproj */;
+				},
 			);
 			projectRoot = "";
 			targets = (
 				B5D9F20E2F311B190009CD68 /* EyeRest */,
+				B5AA00022F3B000000000001 /* EyeRestWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		B5AA00072F3B000000000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		B5D9F20D2F311B190009CD68 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -168,6 +290,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		B5AA00062F3B000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		B5D9F20B2F311B190009CD68 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -177,7 +306,78 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		B5AA00112F3B000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			platformFilter = ios;
+			target = B5AA00022F3B000000000001 /* EyeRestWidgetExtension */;
+			targetProxy = B5AA00102F3B000000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		B5AA00082F3B000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = EyeRestWidgetExtension/EyeRestWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = J7Q9XMR28Y;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = EyeRestWidgetExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = EyeRestWidgetExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = devsalah.com.EyeRest.WidgetExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		B5AA00092F3B000000000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = EyeRestWidgetExtension/EyeRestWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = J7Q9XMR28Y;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = EyeRestWidgetExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = EyeRestWidgetExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = devsalah.com.EyeRest.WidgetExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		B5D9F2182F311B1B0009CD68 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -231,12 +431,15 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				SDKROOT = macosx;
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -289,11 +492,14 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
-				SDKROOT = macosx;
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_COMPILATION_MODE = wholemodule;
 			};
 			name = Release;
@@ -320,12 +526,19 @@
 				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = EyeRest/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = EyeRest;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
-				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "";
+				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "EyeRest benötigt Zugriff auf deinen Kalender, um Pausen während Terminen automatisch zu überspringen.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
+					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = devsalah.com.EyeRest;
@@ -338,11 +551,14 @@
 				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = NO;
 				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = NO;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -368,12 +584,19 @@
 				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = EyeRest/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = EyeRest;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
-				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "";
+				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "EyeRest benötigt Zugriff auf deinen Kalender, um Pausen während Terminen automatisch zu überspringen.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
+					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = devsalah.com.EyeRest;
@@ -386,17 +609,29 @@
 				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = NO;
 				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = NO;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		B5AA000D2F3B000000000001 /* Build configuration list for PBXNativeTarget "EyeRestWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B5AA00082F3B000000000001 /* Debug */,
+				B5AA00092F3B000000000001 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		B5D9F20A2F311B190009CD68 /* Build configuration list for PBXProject "EyeRest" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

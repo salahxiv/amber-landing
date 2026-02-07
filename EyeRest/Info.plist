@@ -34,5 +34,7 @@
     <string>EyeRest benötigt Zugriff auf deinen Kalender, um Pausen während Terminen automatisch zu überspringen.</string>
     <key>NSCalendarsFullAccessUsageDescription</key>
     <string>EyeRest benötigt Zugriff auf deinen Kalender, um Pausen während Terminen automatisch zu überspringen.</string>
+    <key>NSSupportsLiveActivities</key>
+    <true/>
 </dict>
 </plist>

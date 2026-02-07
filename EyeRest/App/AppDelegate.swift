@@ -1,3 +1,4 @@
+#if os(macOS)
 import AppKit
 import SwiftUI
 import Combine
@@ -350,3 +351,4 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApplication.shared.terminate(nil)
     }
 }
+#endif

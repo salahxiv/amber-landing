@@ -1,6 +1,10 @@
 import Foundation
 import Combine
+#if os(macOS)
 import AppKit
+#else
+import UIKit
+#endif
 
 /// Das Herzstück der App: Verwaltet den 20-20-20 Timer
 final class TimerViewModel: ObservableObject {
@@ -15,8 +19,13 @@ final class TimerViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private let settings = SettingsManager.shared
     private let audioService = AudioService.shared
+    #if os(macOS)
     private let dndService = DndService.shared
+    #endif
     private let calendarService = CalendarService.shared
+    #if os(iOS)
+    private let widgetService = WidgetDataService.shared
+    #endif
 
     // MARK: - Computed Properties
 
@@ -63,6 +72,7 @@ final class TimerViewModel: ObservableObject {
     // MARK: - Private Methods
 
     private func setupNotifications() {
+        #if os(macOS)
         // Reagiere auf System-Events (z.B. Aufwachen aus Schlaf)
         NSWorkspace.shared.notificationCenter
             .publisher(for: NSWorkspace.didWakeNotification)
@@ -70,12 +80,53 @@ final class TimerViewModel: ObservableObject {
                 self?.handleSystemWake()
             }
             .store(in: &cancellables)
+        #else
+        // Reagiere auf App-Lifecycle-Events auf iOS
+        NotificationCenter.default
+            .publisher(for: UIApplication.didBecomeActiveNotification)
+            .sink { [weak self] _ in
+                self?.handleSystemWake()
+            }
+            .store(in: &cancellables)
+
+        NotificationCenter.default
+            .publisher(for: UIApplication.willResignActiveNotification)
+            .sink { [weak self] _ in
+                self?.handleBackgrounding()
+            }
+            .store(in: &cancellables)
+        #endif
     }
 
     private func handleSystemWake() {
         // Bei Systemaufwachen: Timer-Status beibehalten
         // Optional: Timer zurücksetzen oder fortsetzen
     }
+
+    #if os(iOS)
+    private func handleBackgrounding() {
+        guard state.phase != .idle, !state.isPaused else { return }
+
+        // Bei Hintergrundwechsel: Local Notification schedulen
+        if state.phase == .work {
+            BackgroundTimerService.shared.scheduleBreakNotification(
+                in: TimeInterval(state.remainingSeconds)
+            )
+        }
+
+        // Widget mit aktuellem State aktualisieren
+        let phase = state.phase == .work ? "work" : "rest"
+        widgetService.updateTimerState(
+            phase: phase,
+            endDate: Date.now.addingTimeInterval(TimeInterval(state.remainingSeconds)),
+            isPaused: false,
+            remainingSeconds: state.remainingSeconds,
+            workDuration: state.workDuration,
+            restDuration: state.restDuration,
+            statusText: state.statusText
+        )
+    }
+    #endif
 
     private func setupSettingsObserver() {
         NotificationCenter.default.publisher(for: .settingsChanged)
@@ -120,10 +171,12 @@ final class TimerViewModel: ObservableObject {
     }
 
     private func shouldSkipBreak() -> Bool {
+        #if os(macOS)
         // Fullscreen-Apps Check
         if settings.dndEnabled && dndService.isFullscreenAppActive() {
             return true
         }
+        #endif
 
         // Kalender-Termin Check
         if settings.calendarSyncEnabled && calendarService.isEventInProgress() {
@@ -150,6 +203,28 @@ final class TimerViewModel: ObservableObject {
             audioService.playBreakStartSound()
             NotificationCenter.default.post(name: .breakStarted, object: nil)
 
+            #if os(iOS)
+            let restEndDate = Date.now.addingTimeInterval(TimeInterval(settings.restDuration))
+            if #available(iOS 16.2, *) {
+                LiveActivityService.shared.updateActivity(
+                    phase: "rest",
+                    endDate: restEndDate,
+                    isPaused: false,
+                    remainingSeconds: settings.restDuration,
+                    statusText: "Pause machen"
+                )
+            }
+            widgetService.updateTimerState(
+                phase: "rest",
+                endDate: restEndDate,
+                isPaused: false,
+                remainingSeconds: settings.restDuration,
+                workDuration: settings.workDuration,
+                restDuration: settings.restDuration,
+                statusText: "Pause machen"
+            )
+            #endif
+
         case .rest:
             // Wechsel zurück zur Arbeitsphase
             state.phase = .work
@@ -158,6 +233,28 @@ final class TimerViewModel: ObservableObject {
             showBreakOverlay = false
             audioService.playBreakEndSound()
             NotificationCenter.default.post(name: .breakEnded, object: nil)
+
+            #if os(iOS)
+            let newWorkEndDate = Date.now.addingTimeInterval(TimeInterval(settings.workDuration))
+            if #available(iOS 16.2, *) {
+                LiveActivityService.shared.updateActivity(
+                    phase: "work",
+                    endDate: newWorkEndDate,
+                    isPaused: false,
+                    remainingSeconds: settings.workDuration,
+                    statusText: "Arbeiten"
+                )
+            }
+            widgetService.updateTimerState(
+                phase: "work",
+                endDate: newWorkEndDate,
+                isPaused: false,
+                remainingSeconds: settings.workDuration,
+                workDuration: settings.workDuration,
+                restDuration: settings.restDuration,
+                statusText: "Arbeiten"
+            )
+            #endif
 
         case .idle:
             break
@@ -174,16 +271,83 @@ final class TimerViewModel: ObservableObject {
         state.restDuration = settings.restDuration
         state.isPaused = false
         startTimer()
+
+        #if os(iOS)
+        let workEndDate = Date.now.addingTimeInterval(TimeInterval(settings.workDuration))
+        if #available(iOS 16.2, *) {
+            LiveActivityService.shared.startActivity(
+                phase: "work",
+                endDate: workEndDate,
+                statusText: "Arbeiten",
+                workMinutes: settings.workDuration / 60
+            )
+        }
+        widgetService.updateTimerState(
+            phase: "work",
+            endDate: workEndDate,
+            isPaused: false,
+            remainingSeconds: settings.workDuration,
+            workDuration: settings.workDuration,
+            restDuration: settings.restDuration,
+            statusText: "Arbeiten"
+        )
+        #endif
     }
 
     /// Pausiert den Timer
     func pause() {
         state.isPaused = true
+
+        #if os(iOS)
+        let phase = state.phase == .work ? "work" : "rest"
+        let pauseEndDate = Date.now.addingTimeInterval(TimeInterval(state.remainingSeconds))
+        if #available(iOS 16.2, *) {
+            LiveActivityService.shared.updateActivity(
+                phase: phase,
+                endDate: pauseEndDate,
+                isPaused: true,
+                remainingSeconds: state.remainingSeconds,
+                statusText: "Pausiert"
+            )
+        }
+        widgetService.updateTimerState(
+            phase: phase,
+            endDate: pauseEndDate,
+            isPaused: true,
+            remainingSeconds: state.remainingSeconds,
+            workDuration: state.workDuration,
+            restDuration: state.restDuration,
+            statusText: "Pausiert"
+        )
+        #endif
     }
 
     /// Setzt den pausierten Timer fort
     func resume() {
         state.isPaused = false
+
+        #if os(iOS)
+        let phase = state.phase == .work ? "work" : "rest"
+        let resumeEndDate = Date.now.addingTimeInterval(TimeInterval(state.remainingSeconds))
+        if #available(iOS 16.2, *) {
+            LiveActivityService.shared.updateActivity(
+                phase: phase,
+                endDate: resumeEndDate,
+                isPaused: false,
+                remainingSeconds: state.remainingSeconds,
+                statusText: state.statusText
+            )
+        }
+        widgetService.updateTimerState(
+            phase: phase,
+            endDate: resumeEndDate,
+            isPaused: false,
+            remainingSeconds: state.remainingSeconds,
+            workDuration: state.workDuration,
+            restDuration: state.restDuration,
+            statusText: state.statusText
+        )
+        #endif
     }
 
     /// Wechselt zwischen Pause und Fortsetzen
@@ -202,12 +366,20 @@ final class TimerViewModel: ObservableObject {
         stopTimer()
         state = .initial
         showBreakOverlay = false
+
+        #if os(iOS)
+        if #available(iOS 16.2, *) {
+            LiveActivityService.shared.endActivity()
+        }
+        widgetService.resetToIdle()
+        #endif
     }
 
     /// Überspringt die aktuelle Pause
     func skip() {
         guard state.phase == .rest else { return }
         NotificationCenter.default.post(name: .breakSkipped, object: nil)
+        // transitionToNextPhase() aktualisiert die Live Activity automatisch (rest→work)
         transitionToNextPhase()
     }
 
@@ -217,5 +389,12 @@ final class TimerViewModel: ObservableObject {
         state.phase = .idle
         state.isPaused = false
         showBreakOverlay = false
+
+        #if os(iOS)
+        if #available(iOS 16.2, *) {
+            LiveActivityService.shared.endActivity()
+        }
+        widgetService.resetToIdle()
+        #endif
     }
 }

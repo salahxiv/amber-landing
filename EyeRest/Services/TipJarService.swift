@@ -1,7 +1,9 @@
 import Foundation
 import StoreKit
 import Combine
+#if os(macOS)
 import AppKit
+#endif
 
 /// Service für In-App Purchase Tip Jar
 @MainActor
@@ -24,7 +26,9 @@ final class TipJarService: ObservableObject {
     ]
 
     private var transactionListener: Task<Void, Error>?
+    #if os(macOS)
     private var purchaseWindow: NSWindow?
+    #endif
 
     // MARK: - Initialization
 
@@ -88,8 +92,9 @@ final class TipJarService: ObservableObject {
         isLoading = false
     }
 
-    // MARK: - Purchase Window Helper
+    // MARK: - Purchase Window Helper (macOS only)
 
+    #if os(macOS)
     /// Hilfsklasse für ein Fenster das Key werden kann
     private class KeyableWindow: NSWindow {
         override var canBecomeKey: Bool { true }
@@ -119,17 +124,20 @@ final class TipJarService: ObservableObject {
         purchaseWindow?.orderOut(nil)
         purchaseWindow = nil
     }
+    #endif
 
     /// Kauft ein Tip-Produkt
     func purchase(_ product: Product) async {
         isLoading = true
         purchaseError = nil
 
+        #if os(macOS)
         // Unsichtbares Fenster für StoreKit-Dialog
         showPurchaseWindow()
 
         // App aktivieren
         NSApp.activate(ignoringOtherApps: true)
+        #endif
 
         // Purchase in einem separaten Task ohne MainActor ausführen
         let purchaseResult = await Task.detached { () -> Result<Product.PurchaseResult, Error> in
@@ -150,7 +158,9 @@ final class TipJarService: ObservableObject {
         }
 
         isLoading = false
+        #if os(macOS)
         hidePurchaseWindow()
+        #endif
     }
 
     /// Verarbeitet das Kaufergebnis

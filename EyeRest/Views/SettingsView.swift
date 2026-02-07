@@ -1,10 +1,14 @@
 import SwiftUI
+#if os(macOS)
 import ServiceManagement
+#endif
 
 /// Erweiterbare Einstellungsansicht für Timer und Audio
 struct SettingsView: View {
     @ObservedObject var settings = SettingsManager.shared
+    #if os(macOS)
     @AppStorage(Constants.launchAtLoginKey) private var launchAtLogin = false
+    #endif
     @Binding var isExpanded: Bool
 
     var body: some View {
@@ -40,6 +44,7 @@ struct SettingsView: View {
                     // Sound Einstellungen
                     soundSettingsSection
 
+                    #if os(macOS)
                     Divider()
 
                     // Nicht stören Modus
@@ -54,6 +59,12 @@ struct SettingsView: View {
 
                     // Bei Login starten
                     launchAtLoginSection
+                    #else
+                    Divider()
+
+                    // Kalender-Sync (auch auf iOS verfügbar)
+                    calendarSection
+                    #endif
                 }
                 .padding(.horizontal, 12)
                 .padding(.bottom, 6)
@@ -124,13 +135,16 @@ struct SettingsView: View {
                     Text("Ton bei Pausen")
                 }
             }
+            #if os(macOS)
             .toggleStyle(.checkbox)
+            #endif
             .font(.subheadline)
         }
     }
 
     // MARK: - Nicht stören Modus
 
+    #if os(macOS)
     private var dndSection: some View {
         Toggle(isOn: $settings.dndEnabled) {
             HStack {
@@ -144,6 +158,7 @@ struct SettingsView: View {
         .font(.subheadline)
         .help("Pausen automatisch überspringen wenn eine Fullscreen-App aktiv ist")
     }
+    #endif
 
     // MARK: - Kalender-Sync
 
@@ -156,14 +171,15 @@ struct SettingsView: View {
                 Text("Bei Terminen pausieren")
             }
         }
+        #if os(macOS)
         .toggleStyle(.checkbox)
+        #endif
         .font(.subheadline)
         .onChange(of: settings.calendarSyncEnabled) { _, newValue in
             if newValue {
                 Task {
                     let granted = await CalendarService.shared.requestAccess()
                     print("Kalender-Berechtigung: \(granted ? "Gewährt" : "Abgelehnt")")
-                    // Toggle bleibt an - Benutzer kann in Systemeinstellungen Berechtigung erteilen
                 }
             }
         }
@@ -171,6 +187,7 @@ struct SettingsView: View {
 
     // MARK: - Bei Login starten
 
+    #if os(macOS)
     private var launchAtLoginSection: some View {
         Toggle(isOn: $launchAtLogin) {
             HStack {
@@ -201,6 +218,7 @@ struct SettingsView: View {
             launchAtLogin = !enabled
         }
     }
+    #endif
 }
 
 // MARK: - Time Stepper Component

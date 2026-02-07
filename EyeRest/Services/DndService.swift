@@ -1,3 +1,4 @@
+#if os(macOS)
 import AppKit
 
 final class DndService {
@@ -32,3 +33,4 @@ final class DndService {
         return menuBarHeight < 10
     }
 }
+#endif

@@ -1,3 +1,4 @@
+#if os(macOS)
 import SwiftUI
 
 /// Hauptansicht im Menüleisten-Popover
@@ -92,3 +93,4 @@ struct MenuBarView: View {
         print("Quit pressed")
     }
 }
+#endif
