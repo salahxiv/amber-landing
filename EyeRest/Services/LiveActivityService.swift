@@ -68,7 +68,7 @@ final class LiveActivityService {
             endDate: .now,
             isPaused: false,
             remainingSeconds: 0,
-            statusText: "Bereit"
+            statusText: String(localized: "timer.status.ready")
         )
 
         let content = ActivityContent(state: state, staleDate: nil)

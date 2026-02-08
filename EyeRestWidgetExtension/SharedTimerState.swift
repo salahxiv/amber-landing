@@ -10,6 +10,7 @@ struct SharedTimerState: Codable {
     var restDuration: Int
     var statusText: String
     var lastUpdated: Date
+    var completedBreaksToday: Int?
 
     /// Fortschritt als Prozent (0.0 bis 1.0)
     var progress: Double {
@@ -27,8 +28,9 @@ struct SharedTimerState: Codable {
             remainingSeconds: 0,
             workDuration: 20 * 60,
             restDuration: 20,
-            statusText: "Bereit",
-            lastUpdated: .now
+            statusText: String(localized: "widget.ready"),
+            lastUpdated: .now,
+            completedBreaksToday: 0
         )
     }
 }

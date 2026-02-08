@@ -47,11 +47,11 @@ struct TimerState {
     var statusText: String {
         switch phase {
         case .work:
-            return isPaused ? "Pausiert" : "Arbeiten"
+            return isPaused ? String(localized: "timer.status.paused") : String(localized: "timer.status.working")
         case .rest:
-            return "Pause machen"
+            return String(localized: "timer.status.takingBreak")
         case .idle:
-            return "Bereit"
+            return String(localized: "timer.status.ready")
         }
     }
 

@@ -12,6 +12,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var overlayWindows: [NSWindow] = []  // Multi-Monitor Support
     private var eventMonitor: Any?
     private var localEventMonitor: Any?
+    private var onboardingWindow: NSWindow?
+    private var panelSizeWorkItem: DispatchWorkItem?
 
     private let timerViewModel = TimerViewModel()
     private let hotkeyService = HotkeyService.shared
@@ -28,14 +30,33 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         observeSettingsExpanded()
         observeScreenChanges()
 
-        // Statistiken initialisieren
+        // Statistiken und Services initialisieren
         _ = StatisticsManager.shared
+        _ = AchievementService.shared
+        _ = CrossDeviceBreakService.shared
+
+        // Analytics initialisieren
+        AnalyticsService.shared.initialize()
+        AnalyticsService.shared.track("app_started", with: ["platform": "macOS"])
+
+        // Onboarding beim ersten Start anzeigen
+        if !SettingsManager.shared.hasCompletedOnboarding {
+            showOnboarding()
+        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {
         timerViewModel.stop()
         stopEventMonitors()
         hotkeyService.unregister()
+    }
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        // Wenn App-Icon geklickt wird (Spotlight/Finder), Menü-Panel zeigen
+        if let button = statusItem?.button {
+            showMenu(relativeTo: button)
+        }
+        return true
     }
 
     // MARK: - Menu Bar Setup
@@ -206,12 +227,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
               menuHostingView != nil,
               panel.isVisible else { return }
 
-        // Kleine Verzögerung für Animation
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
+        // Vorherige ausstehende Aktualisierung abbrechen (Debounce)
+        panelSizeWorkItem?.cancel()
+
+        let workItem = DispatchWorkItem { [weak self] in
             guard let panel = self?.menuPanel,
                   let hostingView = self?.menuHostingView else { return }
 
-            let newSize = hostingView.fittingSize
+            var newSize = hostingView.fittingSize
+
+            // Panel-Höhe auf sichtbaren Bildschirmbereich begrenzen
+            if let screen = NSScreen.main {
+                let maxHeight = screen.visibleFrame.height
+                newSize.height = min(newSize.height, maxHeight)
+            }
+
             let currentFrame = panel.frame
 
             // Neue Position berechnen (Panel wächst nach unten)
@@ -229,6 +259,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 )
             }
         }
+
+        panelSizeWorkItem = workItem
+        // Verzögerung damit Layout/CA-Commit abgeschlossen ist
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15, execute: workItem)
     }
 
     // MARK: - Menu Actions
@@ -249,7 +283,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
               let hostingView = menuHostingView else { return }
 
         // Größe neu berechnen basierend auf aktuellem Inhalt
-        let fittingSize = hostingView.fittingSize
+        var fittingSize = hostingView.fittingSize
+
+        // Panel-Höhe auf sichtbaren Bildschirmbereich begrenzen
+        if let screen = NSScreen.main {
+            fittingSize.height = min(fittingSize.height, screen.visibleFrame.height)
+        }
+
         panel.setContentSize(fittingSize)
 
         // Position berechnen
@@ -271,9 +311,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func updateMenuBarIcon() {
-        if let button = statusItem?.button {
-            let iconName = timerViewModel.menuBarIcon
-            button.image = NSImage(systemSymbolName: iconName, accessibilityDescription: "Augen")
+        guard let button = statusItem?.button else { return }
+
+        let iconName = timerViewModel.menuBarIcon
+        button.image = NSImage(systemSymbolName: iconName, accessibilityDescription: "Augen")
+
+        // Countdown in der Menüleiste anzeigen (Pro Feature)
+        let settings = SettingsManager.shared
+        if settings.showMenuBarCountdown && settings.isPro && timerViewModel.currentPhase != .idle {
+            button.title = " \(timerViewModel.formattedTime)"
+        } else {
+            button.title = ""
         }
     }
 
@@ -343,6 +391,38 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func hideOverlay() {
         // Alle Overlay-Fenster ausblenden
         overlayWindows.forEach { $0.orderOut(nil) }
+    }
+
+    // MARK: - Onboarding
+
+    private func showOnboarding() {
+        let onboardingView = OnboardingView { [weak self] in
+            self?.closeOnboarding()
+            self?.timerViewModel.start()
+        }
+
+        let hostingView = NSHostingView(rootView: onboardingView)
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 500, height: 600),
+            styleMask: [.titled, .closable, .fullSizeContentView],
+            backing: .buffered,
+            defer: false
+        )
+
+        window.contentView = hostingView
+        window.titlebarAppearsTransparent = true
+        window.titleVisibility = .hidden
+        window.isMovableByWindowBackground = true
+        window.center()
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+
+        self.onboardingWindow = window
+    }
+
+    private func closeOnboarding() {
+        onboardingWindow?.close()
+        onboardingWindow = nil
     }
 
     // MARK: - App Actions

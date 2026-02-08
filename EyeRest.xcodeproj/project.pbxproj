@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		B55F61FA2F313D80005A46A0 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B55F61F92F313D80005A46A0 /* StoreKit.framework */; };
 		B5AA00132F3B000000000001 /* EyeRestWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = B5AA00032F3B000000000001 /* EyeRestWidgetExtension.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		B5AB00012F4E000000000001 /* Aptabase in Frameworks */ = {isa = PBXBuildFile; productRef = B5AB00022F4E000000000001 /* Aptabase */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -38,6 +39,8 @@
 /* Begin PBXFileReference section */
 		B55F61D22F311D38005A46A0 /* EyeRest.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = EyeRest.xcodeproj; sourceTree = "<group>"; };
 		B55F61F92F313D80005A46A0 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
+		B56D2B9E2F380183007440EA /* EyeRest.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = EyeRest.xcodeproj; sourceTree = "<group>"; };
+		B56D2C232F38167E007440EA /* EyeRest.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = EyeRest.xcodeproj; sourceTree = "<group>"; };
 		B58EE84C2F36D0CF0095B8FD /* EyeRest.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = EyeRest.xcodeproj; sourceTree = "<group>"; };
 		B58EE9872F36D7820095B8FD /* EyeRest.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = EyeRest.xcodeproj; sourceTree = "<group>"; };
 		B5AA00032F3B000000000001 /* EyeRestWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = EyeRestWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -95,6 +98,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B55F61FA2F313D80005A46A0 /* StoreKit.framework in Frameworks */,
+				B5AB00012F4E000000000001 /* Aptabase in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -114,6 +118,20 @@
 				B55F61F92F313D80005A46A0 /* StoreKit.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		B56D2BA12F380183007440EA /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		B56D2C272F38167E007440EA /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		B58EE84F2F36D0CF0095B8FD /* Products */ = {
@@ -207,6 +225,7 @@
 			);
 			name = EyeRest;
 			packageProductDependencies = (
+				B5AB00022F4E000000000001 /* Aptabase */,
 			);
 			productName = EyeRest;
 			productReference = B5D9F20F2F311B190009CD68 /* EyeRest.app */;
@@ -263,6 +282,17 @@
 					ProductGroup = B58EE98A2F36D7820095B8FD /* Products */;
 					ProjectRef = B58EE9872F36D7820095B8FD /* EyeRest.xcodeproj */;
 				},
+				{
+					ProductGroup = B56D2BA12F380183007440EA /* Products */;
+					ProjectRef = B56D2B9E2F380183007440EA /* EyeRest.xcodeproj */;
+				},
+				{
+					ProductGroup = B56D2C272F38167E007440EA /* Products */;
+					ProjectRef = B56D2C232F38167E007440EA /* EyeRest.xcodeproj */;
+				},
+			);
+			packageReferences = (
+				B5AB00032F4E000000000001 /* XCRemoteSwiftPackageReference "aptabase-swift" */,
 			);
 			projectRoot = "";
 			targets = (
@@ -510,21 +540,28 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				AUTOMATION_APPLE_EVENTS = NO;
-				CODE_SIGN_ENTITLEMENTS = EyeRest/EyeRest.entitlements;
+				"CODE_SIGN_ENTITLEMENTS[sdk=iphoneos*]" = EyeRest/EyeRest_iOS.entitlements;
+				"CODE_SIGN_ENTITLEMENTS[sdk=iphonesimulator*]" = EyeRest/EyeRest_iOS.entitlements;
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = EyeRest/EyeRest.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = J7Q9XMR28Y;
-				ENABLE_APP_SANDBOX = NO;
+				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
 				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
 				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
 				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
 				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = EyeRest/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = EyeRest;
@@ -568,21 +605,28 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				AUTOMATION_APPLE_EVENTS = NO;
-				CODE_SIGN_ENTITLEMENTS = EyeRest/EyeRest.entitlements;
+				"CODE_SIGN_ENTITLEMENTS[sdk=iphoneos*]" = EyeRest/EyeRest_iOS.entitlements;
+				"CODE_SIGN_ENTITLEMENTS[sdk=iphonesimulator*]" = EyeRest/EyeRest_iOS.entitlements;
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = EyeRest/EyeRest.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = J7Q9XMR28Y;
-				ENABLE_APP_SANDBOX = NO;
+				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
 				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
 				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
 				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
 				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = EyeRest/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = EyeRest;
@@ -651,6 +695,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		B5AB00032F4E000000000001 /* XCRemoteSwiftPackageReference "aptabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/aptabase/aptabase-swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.3.11;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		B5AB00022F4E000000000001 /* Aptabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B5AB00032F4E000000000001 /* XCRemoteSwiftPackageReference "aptabase-swift" */;
+			productName = Aptabase;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = B5D9F2072F311B190009CD68 /* Project object */;
 }

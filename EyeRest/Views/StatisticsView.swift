@@ -20,7 +20,7 @@ struct StatisticsView: View {
                         .foregroundColor(.blue)
                         .frame(width: 16)
 
-                    Text("Statistiken")
+                    Text("statistics.title")
                         .font(.system(size: 13))
 
                     Spacer()
@@ -41,35 +41,87 @@ struct StatisticsView: View {
                 VStack(spacing: 6) {
                     // Heute
                     StatisticRowView(
-                        title: "Heute",
+                        title: String(localized: "statistics.today"),
                         value: "\(statistics.completedBreaksToday)",
                         subtitle: statistics.skippedBreaksToday > 0
-                            ? "(\(statistics.skippedBreaksToday) übersprungen)"
-                            : "Pausen"
+                            ? String(localized: "statistics.skipped \(statistics.skippedBreaksToday)")
+                            : String(localized: "statistics.breaks")
                     )
 
                     // Diese Woche
                     StatisticRowView(
-                        title: "Diese Woche",
+                        title: String(localized: "statistics.thisWeek"),
                         value: "\(statistics.completedBreaksThisWeek)",
-                        subtitle: "Pausen"
+                        subtitle: String(localized: "statistics.breaks")
                     )
 
                     // Durchschnitt
                     StatisticRowView(
-                        title: "Durchschnitt",
+                        title: String(localized: "statistics.average"),
                         value: String(format: "%.1f", statistics.averageBreaksPerDay),
-                        subtitle: "pro Tag"
+                        subtitle: String(localized: "statistics.perDay")
                     )
 
                     // Aktuelle Serie
-                    if statistics.currentStreak > 0 {
+                    if statistics.currentDayStreak > 0 {
                         StatisticRowView(
-                            title: "Aktuelle Serie",
-                            value: "\(statistics.currentStreak)",
-                            subtitle: "in Folge",
+                            title: String(localized: "statistics.dayStreak"),
+                            value: "\(statistics.currentDayStreak)",
+                            subtitle: String(localized: "statistics.days"),
                             highlighted: true
                         )
+                    }
+
+                    // Längste Serie
+                    if statistics.longestDayStreak > 1 {
+                        StatisticRowView(
+                            title: String(localized: "statistics.longestStreak"),
+                            value: "\(statistics.longestDayStreak)",
+                            subtitle: String(localized: "statistics.days")
+                        )
+                    }
+
+                    // Achievements
+                    let achievements = AchievementService.shared
+                    if achievements.unlockedCount > 0 {
+                        StatisticRowView(
+                            title: String(localized: "statistics.achievements"),
+                            value: "\(achievements.unlockedCount)/\(achievements.totalCount)",
+                            subtitle: ""
+                        )
+                    }
+
+                    // Erweiterte Statistiken (Pro)
+                    if SettingsManager.shared.isPro {
+                        Divider()
+                        EnhancedStatisticsView()
+                    } else {
+                        #if os(macOS)
+                        Divider()
+                        Button {
+                            PaywallWindowController.shared.show()
+                        } label: {
+                            HStack {
+                                Image(systemName: "chart.bar.fill")
+                                    .foregroundColor(.blue)
+                                Text("statistics.advancedCharts")
+                                    .font(.caption)
+                                Spacer()
+                                HStack(spacing: 3) {
+                                    Image(systemName: "lock.fill")
+                                        .font(.system(size: 8))
+                                    Text("PRO")
+                                        .font(.system(size: 9, weight: .bold))
+                                }
+                                .foregroundColor(.yellow)
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 2)
+                                .background(Color.yellow.opacity(0.15))
+                                .cornerRadius(4)
+                            }
+                        }
+                        .buttonStyle(.plain)
+                        #endif
                     }
                 }
                 .padding(.horizontal, 12)

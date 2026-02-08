@@ -27,11 +27,54 @@ enum Constants {
     static let soundEnabledKey = "soundEnabled"
     static let dndEnabledKey = "dndEnabled"
     static let calendarSyncEnabledKey = "calendarSyncEnabled"
+    static let hasCompletedOnboardingKey = "hasCompletedOnboarding"
+    static let idleDetectionEnabledKey = "idleDetectionEnabled"
+    static let idleThresholdKey = "idleThreshold"
+    static let showMenuBarCountdownKey = "showMenuBarCountdown"
+    static let strictModeEnabledKey = "strictModeEnabled"
+    static let breakStartSoundKey = "breakStartSound"
+    static let breakEndSoundKey = "breakEndSound"
+    static let overlayThemeKey = "overlayTheme"
+    static let preBreakWarningEnabledKey = "preBreakWarningEnabled"
+    static let preBreakWarningSecondsKey = "preBreakWarningSeconds"
 
-    // Tip Jar Product IDs (App Store Connect)
-    static let tipSmall = "com.devsalah.eyerest.tip.small"      // $0.99
-    static let tipMedium = "com.devsalah.eyerest.tip.medium"    // $2.99
-    static let tipLarge = "com.devsalah.eyerest.tip.large"      // $4.99
+    // Sound Defaults
+    static let defaultBreakStartSound = "default"
+    static let defaultBreakEndSound = "default"
+
+    // Theme Default
+    static let defaultOverlayTheme = "ocean"
+
+    // Pre-Break Warning Default
+    static let defaultPreBreakWarningSeconds: Int = 60  // 1 Minute
+
+    // Idle Detection Defaults (macOS)
+    static let defaultIdleThreshold: Int = 5 * 60  // 5 Minuten in Sekunden
+
+    // Cross-Device Sync Keys
+    static let crossDeviceSyncEnabledKey = "crossDeviceSyncEnabled"
+    static let crossDeviceBreakTimestampKey = "crossDeviceBreakTimestamp"
+    static let crossDeviceBreakDeviceIDKey = "crossDeviceBreakDeviceID"
+    static let crossDeviceBreakDeviceNameKey = "crossDeviceBreakDeviceName"
+    static let localDeviceIDKey = "localDeviceID"
+
+    // Review Prompting
+    static let lastReviewPromptDateKey = "lastReviewPromptDate"
+    static let reviewPromptMinimumDays: Int = 30
+
+    // Paywall Reminder
+    static let firstLaunchDateKey = "firstLaunchDate"
+    static let lastPaywallReminderDateKey = "lastPaywallReminderDate"
+    static let paywallReminderInitialDays: Int = 3     // Erste Erinnerung nach 3 Tagen
+    static let paywallReminderRepeatDays: Int = 7      // Danach alle 7 Tage
+
+    // Subscription Product IDs (App Store Connect)
+    static let subscriptionMonthly = "com.devsalah.eyerest.pro.monthly"    // 1,99€/Monat
+    static let subscriptionYearly = "com.devsalah.eyerest.pro.yearly"      // 14,99€/Jahr
+    static let subscriptionLifetime = "com.devsalah.eyerest.pro.lifetime"  // 39,99€ einmalig
+
+    // Subscription Group ID
+    static let subscriptionGroupID = "eyerest_pro"
 }
 
 // Notification Names für App-Events
@@ -44,4 +87,6 @@ extension Notification.Name {
     static let settingsExpandedChanged = Notification.Name("settingsExpandedChanged")
     static let statisticsUpdated = Notification.Name("statisticsUpdated")
     static let closeMenuPanel = Notification.Name("closeMenuPanel")
+    static let proStatusChanged = Notification.Name("proStatusChanged")
+    static let crossDeviceBreakReceived = Notification.Name("crossDeviceBreakReceived")
 }

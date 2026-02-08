@@ -34,7 +34,22 @@
     <string>EyeRest benötigt Zugriff auf deinen Kalender, um Pausen während Terminen automatisch zu überspringen.</string>
     <key>NSCalendarsFullAccessUsageDescription</key>
     <string>EyeRest benötigt Zugriff auf deinen Kalender, um Pausen während Terminen automatisch zu überspringen.</string>
+    <key>NSHealthShareUsageDescription</key>
+    <string>EyeRest zeigt deine Achtsamkeitsminuten an.</string>
+    <key>NSHealthUpdateUsageDescription</key>
+    <string>EyeRest speichert deine Augenpausen als Achtsamkeitsminuten in Apple Health.</string>
     <key>NSSupportsLiveActivities</key>
     <true/>
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLName</key>
+            <string>devsalah.com.EyeRest</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>eyerest</string>
+            </array>
+        </dict>
+    </array>
 </dict>
 </plist>

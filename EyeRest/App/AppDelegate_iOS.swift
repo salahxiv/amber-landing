@@ -17,8 +17,15 @@ final class AppDelegate_iOS: NSObject, UIApplicationDelegate, UNUserNotification
             _ = await NotificationService.shared.requestPermission()
         }
 
-        // Statistiken initialisieren
+        // Statistiken und Services initialisieren
         _ = StatisticsManager.shared
+        _ = AchievementService.shared
+        _ = HealthService.shared
+        _ = CrossDeviceBreakService.shared
+
+        // Analytics initialisieren
+        AnalyticsService.shared.initialize()
+        AnalyticsService.shared.track("app_started", with: ["platform": "iOS"])
 
         return true
     }

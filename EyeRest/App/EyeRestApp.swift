@@ -7,6 +7,28 @@ struct EyeRestApp: App {
     #else
     @UIApplicationDelegateAdaptor(AppDelegate_iOS.self) var appDelegate
     @StateObject private var timerViewModel = TimerViewModel()
+    @ObservedObject private var settings = SettingsManager.shared
+    #endif
+
+    // MARK: - Deep Link Handling (iOS Live Activity Buttons)
+
+    #if os(iOS)
+    private func handleDeepLink(_ url: URL) {
+        guard url.scheme == "eyerest" else { return }
+
+        switch url.host {
+        case "skip":
+            timerViewModel.skip()
+        case "pause":
+            timerViewModel.pause()
+        case "resume":
+            timerViewModel.resume()
+        case "toggle":
+            timerViewModel.togglePause()
+        default:
+            break
+        }
+    }
     #endif
 
     var body: some Scene {
@@ -17,7 +39,16 @@ struct EyeRestApp: App {
         }
         #else
         WindowGroup {
-            MainTabView(viewModel: timerViewModel)
+            if settings.hasCompletedOnboarding {
+                MainTabView(viewModel: timerViewModel)
+                    .onOpenURL { url in
+                        handleDeepLink(url)
+                    }
+            } else {
+                OnboardingView {
+                    timerViewModel.start()
+                }
+            }
         }
         #endif
     }

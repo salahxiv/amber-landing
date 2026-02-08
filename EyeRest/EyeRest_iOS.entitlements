@@ -4,13 +4,15 @@
 <dict>
 	<key>com.apple.developer.ubiquity-kvstore-identifier</key>
 	<string>$(TeamIdentifierPrefix)$(CFBundleIdentifier)</string>
-	<key>com.apple.security.app-sandbox</key>
-	<true/>
-	<key>com.apple.security.network.client</key>
-	<true/>
 	<key>com.apple.security.application-groups</key>
 	<array>
 		<string>group.devsalah.com.EyeRest</string>
+	</array>
+	<key>com.apple.developer.healthkit</key>
+	<true/>
+	<key>com.apple.developer.healthkit.access</key>
+	<array>
+		<string>health-records</string>
 	</array>
 </dict>
 </plist>

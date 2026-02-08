@@ -6,9 +6,13 @@ struct MenuBarView: View {
     @ObservedObject var viewModel: TimerViewModel
     @State private var settingsExpanded = false
     @State private var statisticsExpanded = false
-    @State private var tipJarExpanded = false
+    @State private var showPaywall = false
 
     let onQuit: () -> Void
+
+    private var maxPanelHeight: CGFloat {
+        (NSScreen.main?.visibleFrame.height ?? 800) - 20
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -20,6 +24,11 @@ struct MenuBarView: View {
 
             // Timer Display
             VStack(spacing: 16) {
+                // Status Text (extern, nicht mehr im Ring)
+                Text(viewModel.statusText)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+
                 TimerDisplayView(
                     remainingTime: viewModel.formattedTime,
                     progress: viewModel.progress,
@@ -29,22 +38,24 @@ struct MenuBarView: View {
 
                 ControlButtonsView(viewModel: viewModel)
             }
-            .padding(.vertical, 20)
+            .padding(.vertical, 24)
 
             Divider()
 
-            // Statistiken
-            StatisticsView(isExpanded: $statisticsExpanded)
+            // Scrollbarer Bereich für Statistiken, Einstellungen, Pro Upgrade
+            ScrollView(.vertical, showsIndicators: true) {
+                VStack(spacing: 0) {
+                    StatisticsView(isExpanded: $statisticsExpanded)
 
-            Divider()
+                    Divider()
 
-            // Einstellungen
-            SettingsView(isExpanded: $settingsExpanded)
+                    SettingsView(isExpanded: $settingsExpanded)
 
-            Divider()
+                    Divider()
 
-            // Tip Jar
-            TipJarView(isExpanded: $tipJarExpanded)
+                    ProUpgradeRow(showPaywall: $showPaywall)
+                }
+            }
 
             Divider()
 
@@ -52,7 +63,19 @@ struct MenuBarView: View {
             quitButton
         }
         .frame(width: Constants.popoverWidth)
-        .fixedSize(horizontal: false, vertical: true)
+        .frame(maxHeight: maxPanelHeight)
+        .onAppear {
+            SettingsManager.shared.recordFirstLaunchIfNeeded()
+            if SettingsManager.shared.shouldShowPaywallReminder() {
+                SettingsManager.shared.markPaywallReminderShown()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    NotificationCenter.default.post(name: .closeMenuPanel, object: nil)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        PaywallWindowController.shared.show()
+                    }
+                }
+            }
+        }
     }
 
     // MARK: - Subviews
@@ -69,13 +92,13 @@ struct MenuBarView: View {
     }
 
     private var quitButton: some View {
-        Button(action: onQuit) {
+        MenuBarHoverButton(action: onQuit) {
             HStack(spacing: 8) {
                 Image(systemName: "xmark.circle")
                     .font(.system(size: 13))
                     .foregroundColor(.secondary)
                     .frame(width: 16)
-                Text("Beenden")
+                Text("menubar.quit")
                     .font(.system(size: 13))
                 Spacer()
             }
@@ -83,9 +106,30 @@ struct MenuBarView: View {
             .padding(.vertical, 6)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
     }
+}
 
+// MARK: - Hover Button für Menübar-Elemente
+
+struct MenuBarHoverButton<Label: View>: View {
+    let action: () -> Void
+    @ViewBuilder let label: Label
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(action: action) {
+            label
+        }
+        .buttonStyle(.plain)
+        .background(
+            RoundedRectangle(cornerRadius: 4)
+                .fill(Color.primary.opacity(isHovered ? 0.06 : 0))
+                .padding(.horizontal, 4)
+        )
+        .onHover { hovering in
+            isHovered = hovering
+        }
+    }
 }
 
 #Preview {

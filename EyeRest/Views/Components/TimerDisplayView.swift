@@ -6,17 +6,24 @@ struct TimerDisplayView: View {
     let progress: Double
     let statusText: String
     let phase: TimerPhase
+    var size: CGFloat = 140
 
     // Breathing Animation State
     @State private var breathingScale: CGFloat = 1.0
     @State private var breathingOpacity: Double = 0.2
+    // Rest-Phase Glow Pulse
+    @State private var restGlowPulse: CGFloat = 0.5
+
+    private var theme: OverlayTheme {
+        SettingsManager.shared.currentTheme
+    }
 
     private var progressColor: Color {
         switch phase {
         case .work:
             return .blue
         case .rest:
-            return .green
+            return theme.accentColor
         case .idle:
             return .gray
         }
@@ -33,7 +40,7 @@ struct TimerDisplayView: View {
             )
         case .rest:
             return AngularGradient(
-                colors: [.green, .mint, .green],
+                colors: [theme.accentColor, theme.secondaryAccent, theme.accentColor],
                 center: .center,
                 startAngle: .degrees(-90),
                 endAngle: .degrees(270)
@@ -48,6 +55,9 @@ struct TimerDisplayView: View {
         }
     }
 
+    private var ringWidth: CGFloat { 12 }
+    private var timerFontSize: CGFloat { size * 0.22 }
+
     var body: some View {
         ZStack {
             // Breathing Glow für Idle-Zustand
@@ -58,9 +68,14 @@ struct TimerDisplayView: View {
                     .blur(radius: 20)
             }
 
-            // Hintergrund-Kreis
+            // Äußerer feiner Ring (Depth)
             Circle()
-                .stroke(Color.gray.opacity(phase == .idle ? breathingOpacity : 0.2), lineWidth: 8)
+                .stroke(Color.primary.opacity(0.1), lineWidth: 1)
+                .padding(-4)
+
+            // Hintergrund-Track (dicker)
+            Circle()
+                .stroke(Color.gray.opacity(phase == .idle ? breathingOpacity * 0.4 : 0.08), lineWidth: ringWidth)
                 .scaleEffect(phase == .idle ? breathingScale : 1.0)
 
             // Fortschritts-Kreis mit Gradient und Glow
@@ -68,27 +83,23 @@ struct TimerDisplayView: View {
                 .trim(from: 0, to: progress)
                 .stroke(
                     progressGradient,
-                    style: StrokeStyle(lineWidth: 8, lineCap: .round)
+                    style: StrokeStyle(lineWidth: ringWidth, lineCap: .round)
                 )
                 .rotationEffect(.degrees(-90))
-                .shadow(color: progressColor.opacity(0.5), radius: 8)
-                .animation(.easeInOut(duration: 0.3), value: progress)
+                .shadow(color: progressColor.opacity(phase == .rest ? restGlowPulse : 0.5), radius: 12)
+                .animation(.spring(duration: 0.4), value: progress)
+                .animation(.spring(duration: 0.5), value: phase)
 
-            // Zeit und Status
-            VStack(spacing: 4) {
-                Text(remainingTime)
-                    .font(.system(size: 36, weight: .bold, design: .rounded))
-                    .monospacedDigit()
-                    .opacity(phase == .idle ? (0.6 + breathingOpacity) : 1.0)
-
-                Text(statusText)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
+            // Zeit-Anzeige (Status-Text wird extern dargestellt)
+            Text(remainingTime)
+                .font(.system(size: timerFontSize, weight: .bold, design: .rounded))
+                .monospacedDigit()
+                .opacity(phase == .idle ? (0.6 + breathingOpacity) : 1.0)
         }
-        .frame(width: 140, height: 140)
+        .frame(width: size, height: size)
         .onAppear {
             startBreathingAnimation()
+            startRestGlowIfNeeded()
         }
         .onChange(of: phase) { _, newPhase in
             if newPhase == .idle {
@@ -96,10 +107,15 @@ struct TimerDisplayView: View {
             } else {
                 stopBreathingAnimation()
             }
+            if newPhase == .rest {
+                startRestGlow()
+            } else {
+                stopRestGlow()
+            }
         }
     }
 
-    // MARK: - Breathing Animation
+    // MARK: - Breathing Animation (Idle)
 
     private func startBreathingAnimation() {
         guard phase == .idle else { return }
@@ -118,30 +134,55 @@ struct TimerDisplayView: View {
             breathingOpacity = 0.2
         }
     }
+
+    // MARK: - Rest Glow Pulse
+
+    private func startRestGlowIfNeeded() {
+        guard phase == .rest else { return }
+        startRestGlow()
+    }
+
+    private func startRestGlow() {
+        withAnimation(
+            .easeInOut(duration: 1.5)
+            .repeatForever(autoreverses: true)
+        ) {
+            restGlowPulse = 0.8
+        }
+    }
+
+    private func stopRestGlow() {
+        withAnimation(.easeOut(duration: 0.3)) {
+            restGlowPulse = 0.5
+        }
+    }
 }
 
 #Preview {
-    VStack(spacing: 20) {
+    VStack(spacing: 30) {
         TimerDisplayView(
             remainingTime: "20:00",
             progress: 1.0,
             statusText: "Bereit",
-            phase: .idle
+            phase: .idle,
+            size: 240
         )
 
-        TimerDisplayView(
-            remainingTime: "19:45",
-            progress: 0.3,
-            statusText: "Arbeiten",
-            phase: .work
-        )
+        HStack(spacing: 20) {
+            TimerDisplayView(
+                remainingTime: "19:45",
+                progress: 0.3,
+                statusText: "Arbeiten",
+                phase: .work
+            )
 
-        TimerDisplayView(
-            remainingTime: "15",
-            progress: 0.75,
-            statusText: "Pause machen",
-            phase: .rest
-        )
+            TimerDisplayView(
+                remainingTime: "15",
+                progress: 0.75,
+                statusText: "Pause machen",
+                phase: .rest
+            )
+        }
     }
     .padding()
 }

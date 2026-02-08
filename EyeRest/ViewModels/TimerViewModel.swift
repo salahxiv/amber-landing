@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import UserNotifications
 #if os(macOS)
 import AppKit
 #else
@@ -21,6 +22,7 @@ final class TimerViewModel: ObservableObject {
     private let audioService = AudioService.shared
     #if os(macOS)
     private let dndService = DndService.shared
+    private var isIdlePaused = false  // Timer wurde wegen Inaktivität pausiert
     #endif
     private let calendarService = CalendarService.shared
     #if os(iOS)
@@ -161,9 +163,45 @@ final class TimerViewModel: ObservableObject {
     }
 
     private func tick() {
-        guard !state.isPaused else { return }
+        guard !state.isPaused else {
+            #if os(macOS)
+            // Idle-Pause automatisch aufheben wenn Benutzer zurückkehrt
+            if isIdlePaused && settings.idleDetectionEnabled {
+                let threshold = TimeInterval(settings.idleThreshold)
+                if !dndService.isUserIdle(threshold: threshold) {
+                    isIdlePaused = false
+                    state.isPaused = false
+                    // Arbeitsphase zurücksetzen da Benutzer bereits geruht hat
+                    if state.phase == .work {
+                        state.remainingSeconds = settings.workDuration
+                    }
+                }
+            }
+            #endif
+            return
+        }
+
+        #if os(macOS)
+        // Idle-Erkennung: Timer pausieren wenn Benutzer inaktiv
+        if settings.idleDetectionEnabled && state.phase == .work {
+            let threshold = TimeInterval(settings.idleThreshold)
+            if dndService.isUserIdle(threshold: threshold) {
+                isIdlePaused = true
+                state.isPaused = true
+                return
+            }
+        }
+        #endif
 
         if state.remainingSeconds > 0 {
+            // Smart Reminder: Vorab-Warnung vor Pausenbeginn
+            if state.phase == .work
+                && settings.preBreakWarningEnabled
+                && SubscriptionManager.shared.isPro
+                && state.remainingSeconds == settings.preBreakWarningSeconds {
+                sendPreBreakWarning()
+            }
+
             state.remainingSeconds -= 1
         } else {
             transitionToNextPhase()
@@ -202,6 +240,7 @@ final class TimerViewModel: ObservableObject {
             showBreakOverlay = true
             audioService.playBreakStartSound()
             NotificationCenter.default.post(name: .breakStarted, object: nil)
+            CrossDeviceBreakService.shared.broadcastBreakStarted()
 
             #if os(iOS)
             let restEndDate = Date.now.addingTimeInterval(TimeInterval(settings.restDuration))
@@ -211,7 +250,7 @@ final class TimerViewModel: ObservableObject {
                     endDate: restEndDate,
                     isPaused: false,
                     remainingSeconds: settings.restDuration,
-                    statusText: "Pause machen"
+                    statusText: String(localized: "timer.status.takingBreak")
                 )
             }
             widgetService.updateTimerState(
@@ -221,7 +260,7 @@ final class TimerViewModel: ObservableObject {
                 remainingSeconds: settings.restDuration,
                 workDuration: settings.workDuration,
                 restDuration: settings.restDuration,
-                statusText: "Pause machen"
+                statusText: String(localized: "timer.status.takingBreak")
             )
             #endif
 
@@ -233,6 +272,7 @@ final class TimerViewModel: ObservableObject {
             showBreakOverlay = false
             audioService.playBreakEndSound()
             NotificationCenter.default.post(name: .breakEnded, object: nil)
+            AnalyticsService.shared.track("break_completed", with: ["duration": settings.restDuration])
 
             #if os(iOS)
             let newWorkEndDate = Date.now.addingTimeInterval(TimeInterval(settings.workDuration))
@@ -242,7 +282,7 @@ final class TimerViewModel: ObservableObject {
                     endDate: newWorkEndDate,
                     isPaused: false,
                     remainingSeconds: settings.workDuration,
-                    statusText: "Arbeiten"
+                    statusText: String(localized: "timer.status.working")
                 )
             }
             widgetService.updateTimerState(
@@ -252,7 +292,7 @@ final class TimerViewModel: ObservableObject {
                 remainingSeconds: settings.workDuration,
                 workDuration: settings.workDuration,
                 restDuration: settings.restDuration,
-                statusText: "Arbeiten"
+                statusText: String(localized: "timer.status.working")
             )
             #endif
 
@@ -271,6 +311,7 @@ final class TimerViewModel: ObservableObject {
         state.restDuration = settings.restDuration
         state.isPaused = false
         startTimer()
+        AnalyticsService.shared.track("timer_started")
 
         #if os(iOS)
         let workEndDate = Date.now.addingTimeInterval(TimeInterval(settings.workDuration))
@@ -278,7 +319,7 @@ final class TimerViewModel: ObservableObject {
             LiveActivityService.shared.startActivity(
                 phase: "work",
                 endDate: workEndDate,
-                statusText: "Arbeiten",
+                statusText: String(localized: "timer.status.working"),
                 workMinutes: settings.workDuration / 60
             )
         }
@@ -289,7 +330,7 @@ final class TimerViewModel: ObservableObject {
             remainingSeconds: settings.workDuration,
             workDuration: settings.workDuration,
             restDuration: settings.restDuration,
-            statusText: "Arbeiten"
+            statusText: String(localized: "timer.status.working")
         )
         #endif
     }
@@ -297,6 +338,7 @@ final class TimerViewModel: ObservableObject {
     /// Pausiert den Timer
     func pause() {
         state.isPaused = true
+        AnalyticsService.shared.track("timer_paused")
 
         #if os(iOS)
         let phase = state.phase == .work ? "work" : "rest"
@@ -307,7 +349,7 @@ final class TimerViewModel: ObservableObject {
                 endDate: pauseEndDate,
                 isPaused: true,
                 remainingSeconds: state.remainingSeconds,
-                statusText: "Pausiert"
+                statusText: String(localized: "timer.status.paused")
             )
         }
         widgetService.updateTimerState(
@@ -317,7 +359,7 @@ final class TimerViewModel: ObservableObject {
             remainingSeconds: state.remainingSeconds,
             workDuration: state.workDuration,
             restDuration: state.restDuration,
-            statusText: "Pausiert"
+            statusText: String(localized: "timer.status.paused")
         )
         #endif
     }
@@ -325,6 +367,7 @@ final class TimerViewModel: ObservableObject {
     /// Setzt den pausierten Timer fort
     func resume() {
         state.isPaused = false
+        AnalyticsService.shared.track("timer_resumed")
 
         #if os(iOS)
         let phase = state.phase == .work ? "work" : "rest"
@@ -378,9 +421,40 @@ final class TimerViewModel: ObservableObject {
     /// Überspringt die aktuelle Pause
     func skip() {
         guard state.phase == .rest else { return }
+        // Strict Mode Safety-Net: Überspringen blockieren wenn aktiv
+        if settings.strictModeEnabled && SubscriptionManager.shared.isPro {
+            return
+        }
         NotificationCenter.default.post(name: .breakSkipped, object: nil)
+        AnalyticsService.shared.track("break_skipped")
         // transitionToNextPhase() aktualisiert die Live Activity automatisch (rest→work)
         transitionToNextPhase()
+    }
+
+    // MARK: - Smart Reminders
+
+    private func sendPreBreakWarning() {
+        let seconds = settings.preBreakWarningSeconds
+        let timeText: String
+        if seconds >= 120 {
+            timeText = String(localized: "time.minutes \(seconds / 60)")
+        } else if seconds >= 60 {
+            timeText = String(localized: "time.oneMinute")
+        } else {
+            timeText = String(localized: "time.seconds \(seconds)")
+        }
+
+        let content = UNMutableNotificationContent()
+        content.title = String(localized: "notification.breakIn \(timeText)")
+        content.body = String(localized: "notification.getReady")
+        content.sound = .default
+
+        let request = UNNotificationRequest(
+            identifier: "preBreakWarning",
+            content: content,
+            trigger: nil  // Sofort anzeigen
+        )
+        UNUserNotificationCenter.current().add(request)
     }
 
     /// Stoppt den Timer komplett

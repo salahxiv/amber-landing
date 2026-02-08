@@ -1,13 +1,15 @@
 #if os(macOS)
 import AppKit
+import CoreGraphics
 
 final class DndService {
     static let shared = DndService()
     private init() {}
 
+    // MARK: - Fullscreen Detection
+
     /// Prüft ob eine Fullscreen-App aktiv ist
     func isFullscreenAppActive() -> Bool {
-        // Debug
         let result = checkFullscreen()
         print("DND Fullscreen Check: \(result)")
         return result
@@ -16,21 +18,29 @@ final class DndService {
     private func checkFullscreen() -> Bool {
         guard let screen = NSScreen.main else { return false }
 
-        // Berechne Menüleisten-Höhe
         let frame = screen.frame
         let visible = screen.visibleFrame
-
-        // visibleFrame.origin.y = Dock-Höhe (wenn unten)
-        // frame.height - visible.height - visible.origin.y = Menüleisten-Höhe
         let menuBarHeight = frame.height - visible.height - visible.origin.y
 
-        print("Screen: \(frame.width)x\(frame.height)")
-        print("Visible: \(visible.width)x\(visible.height) at y=\(visible.origin.y)")
-        print("MenuBar Height: \(menuBarHeight)")
-
-        // Im Fullscreen-Modus ist menuBarHeight = 0 (oder sehr klein)
-        // Normal ist sie ca. 24-37 Pixel
         return menuBarHeight < 10
+    }
+
+    // MARK: - Idle Detection
+
+    /// Sekunden seit letzter Benutzeraktivität (Maus/Tastatur)
+    var secondsSinceLastUserActivity: TimeInterval {
+        let mouseMoved = CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: .mouseMoved)
+        let keyDown = CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: .keyDown)
+        let mouseDown = CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: .leftMouseDown)
+        let scrollWheel = CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: .scrollWheel)
+
+        // Kürzeste Zeit seit letzter Aktivität
+        return min(mouseMoved, keyDown, mouseDown, scrollWheel)
+    }
+
+    /// Prüft ob der Benutzer idle ist (länger als Schwellenwert inaktiv)
+    func isUserIdle(threshold: TimeInterval) -> Bool {
+        return secondsSinceLastUserActivity >= threshold
     }
 }
 #endif

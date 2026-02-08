@@ -32,6 +32,16 @@ final class iCloudSyncService {
         store.synchronize()
     }
 
+    func set(_ value: String, forKey key: String) {
+        store.set(value, forKey: key)
+        store.synchronize()
+    }
+
+    func set(_ value: Double, forKey key: String) {
+        store.set(value, forKey: key)
+        store.synchronize()
+    }
+
     // MARK: - Lesen
 
     func integer(forKey key: String) -> Int? {
@@ -42,6 +52,15 @@ final class iCloudSyncService {
     func bool(forKey key: String) -> Bool? {
         guard store.object(forKey: key) != nil else { return nil }
         return store.bool(forKey: key)
+    }
+
+    func string(forKey key: String) -> String? {
+        return store.string(forKey: key)
+    }
+
+    func double(forKey key: String) -> Double? {
+        guard store.object(forKey: key) != nil else { return nil }
+        return store.double(forKey: key)
     }
 
     // MARK: - Externe Änderungen

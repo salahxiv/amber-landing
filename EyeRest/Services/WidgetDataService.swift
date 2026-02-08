@@ -31,7 +31,8 @@ final class WidgetDataService {
             workDuration: workDuration,
             restDuration: restDuration,
             statusText: statusText,
-            lastUpdated: .now
+            lastUpdated: .now,
+            completedBreaksToday: StatisticsManager.shared.completedBreaksToday
         )
 
         save(state)
@@ -41,7 +42,9 @@ final class WidgetDataService {
     // MARK: - Timer zurücksetzen
 
     func resetToIdle() {
-        save(.idle)
+        var idle = SharedTimerState.idle
+        idle.completedBreaksToday = StatisticsManager.shared.completedBreaksToday
+        save(idle)
         WidgetCenter.shared.reloadAllTimelines()
     }
 

@@ -20,7 +20,7 @@ struct SettingsView: View {
                         .font(.system(size: 13))
                         .foregroundColor(.secondary)
                         .frame(width: 16)
-                    Text("Einstellungen")
+                    Text("settings.title")
                         .font(.system(size: 13))
                     Spacer()
                     Image(systemName: "chevron.right")
@@ -44,6 +44,21 @@ struct SettingsView: View {
                     // Sound Einstellungen
                     soundSettingsSection
 
+                    Divider()
+
+                    // Strict Mode
+                    strictModeSection
+
+                    Divider()
+
+                    // Overlay-Themes
+                    themeSection
+
+                    Divider()
+
+                    // Smart Reminders
+                    smartReminderSection
+
                     #if os(macOS)
                     Divider()
 
@@ -52,8 +67,23 @@ struct SettingsView: View {
 
                     Divider()
 
+                    // Idle-Erkennung
+                    idleDetectionSection
+
+                    Divider()
+
                     // Kalender-Sync
                     calendarSection
+
+                    Divider()
+
+                    // Menüleisten-Countdown
+                    menuBarCountdownSection
+
+                    Divider()
+
+                    // Geräte-Sync
+                    crossDeviceSyncSection
 
                     Divider()
 
@@ -64,6 +94,11 @@ struct SettingsView: View {
 
                     // Kalender-Sync (auch auf iOS verfügbar)
                     calendarSection
+
+                    Divider()
+
+                    // Geräte-Sync
+                    crossDeviceSyncSection
                     #endif
                 }
                 .padding(.horizontal, 12)
@@ -81,7 +116,7 @@ struct SettingsView: View {
 
     private var timerSettingsSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Timer")
+            Text("settings.section.timer")
                 .font(.caption)
                 .foregroundColor(.secondary)
 
@@ -90,13 +125,13 @@ struct SettingsView: View {
                 Image(systemName: "desktopcomputer")
                     .foregroundColor(.blue)
                     .frame(width: 20)
-                Text("Arbeitszeit")
+                Text("settings.workDuration")
                 Spacer()
                 TimeStepper(
                     value: $settings.workDuration,
                     range: 60...3600,
                     step: 60,
-                    formatter: { "\($0 / 60) Min" }
+                    formatter: { String(localized: "settings.minutes \($0 / 60)") }
                 )
             }
             .font(.subheadline)
@@ -106,13 +141,13 @@ struct SettingsView: View {
                 Image(systemName: "eye")
                     .foregroundColor(.green)
                     .frame(width: 20)
-                Text("Pausenzeit")
+                Text("settings.restDuration")
                 Spacer()
                 TimeStepper(
                     value: $settings.restDuration,
                     range: 5...120,
                     step: 5,
-                    formatter: { "\($0) Sek" }
+                    formatter: { String(localized: "settings.seconds \($0)") }
                 )
             }
             .font(.subheadline)
@@ -123,7 +158,7 @@ struct SettingsView: View {
 
     private var soundSettingsSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Audio")
+            Text("settings.section.audio")
                 .font(.caption)
                 .foregroundColor(.secondary)
 
@@ -132,13 +167,130 @@ struct SettingsView: View {
                     Image(systemName: settings.soundEnabled ? "speaker.wave.2" : "speaker.slash")
                         .foregroundColor(.secondary)
                         .frame(width: 20)
-                    Text("Ton bei Pausen")
+                    Text("settings.breakSound")
                 }
             }
             #if os(macOS)
             .toggleStyle(.checkbox)
             #endif
             .font(.subheadline)
+
+            // Custom Sounds (Pro)
+            if settings.soundEnabled {
+                if settings.isPro {
+                    SoundPickerRow(
+                        label: String(localized: "settings.breakStart"),
+                        selection: $settings.breakStartSound,
+                        sounds: AudioService.availableSounds
+                    )
+                    SoundPickerRow(
+                        label: String(localized: "settings.breakEnd"),
+                        selection: $settings.breakEndSound,
+                        sounds: AudioService.availableSounds
+                    )
+                } else {
+                    proLockedButton(icon: "speaker.wave.3.fill", title: String(localized: "settings.customSounds"))
+                }
+            }
+        }
+    }
+
+    // MARK: - Strict Mode
+
+    private var strictModeSection: some View {
+        Group {
+            if settings.isPro {
+                Toggle(isOn: $settings.strictModeEnabled) {
+                    HStack {
+                        Image(systemName: "lock.shield.fill")
+                            .foregroundColor(.red)
+                            .frame(width: 20)
+                        Text("settings.strictMode")
+                    }
+                }
+                #if os(macOS)
+                .toggleStyle(.checkbox)
+                #endif
+                .font(.subheadline)
+            } else {
+                proLockedButton(icon: "lock.shield.fill", title: String(localized: "settings.strictMode"))
+            }
+        }
+    }
+
+    // MARK: - Overlay-Themes
+
+    private var themeSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("settings.section.overlayDesign")
+                .font(.caption)
+                .foregroundColor(.secondary)
+
+            if settings.isPro {
+                LazyVGrid(columns: [
+                    GridItem(.flexible()),
+                    GridItem(.flexible()),
+                    GridItem(.flexible())
+                ], spacing: 8) {
+                    ForEach(OverlayTheme.allCases) { theme in
+                        ThemeCard(
+                            theme: theme,
+                            isSelected: settings.overlayTheme == theme.rawValue,
+                            action: { settings.overlayTheme = theme.rawValue }
+                        )
+                    }
+                }
+            } else {
+                proLockedButton(icon: "paintbrush.fill", title: String(localized: "settings.unlockThemes"))
+            }
+        }
+    }
+
+    // MARK: - Smart Reminders
+
+    private var smartReminderSection: some View {
+        Group {
+            if settings.isPro {
+                VStack(alignment: .leading, spacing: 6) {
+                    Toggle(isOn: $settings.preBreakWarningEnabled) {
+                        HStack {
+                            Image(systemName: "bell.badge.fill")
+                                .foregroundColor(.indigo)
+                                .frame(width: 20)
+                            Text("settings.preWarning")
+                        }
+                    }
+                    #if os(macOS)
+                    .toggleStyle(.checkbox)
+                    #endif
+                    .font(.subheadline)
+
+                    if settings.preBreakWarningEnabled {
+                        HStack {
+                            Text("settings.warning")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+
+                            Picker("", selection: $settings.preBreakWarningSeconds) {
+                                Text("settings.30sec").tag(30)
+                                Text("settings.1min").tag(60)
+                                Text("settings.2min").tag(120)
+                            }
+                            .labelsHidden()
+                            #if os(macOS)
+                            .frame(width: 100)
+                            #endif
+
+                            Text("settings.before")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(.leading, 28)
+                    }
+                }
+            } else {
+                proLockedButton(icon: "bell.badge.fill", title: String(localized: "settings.smartReminders"))
+            }
         }
     }
 
@@ -151,39 +303,131 @@ struct SettingsView: View {
                 Image(systemName: "moon.fill")
                     .foregroundColor(.purple)
                     .frame(width: 20)
-                Text("Nicht stören (Fullscreen)")
+                Text("settings.dnd")
             }
         }
         .toggleStyle(.checkbox)
         .font(.subheadline)
-        .help("Pausen automatisch überspringen wenn eine Fullscreen-App aktiv ist")
+        .help(String(localized: "settings.dnd.help"))
+    }
+    #endif
+
+    // MARK: - Idle-Erkennung
+
+    #if os(macOS)
+    private var idleDetectionSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Toggle(isOn: $settings.idleDetectionEnabled) {
+                HStack {
+                    Image(systemName: "zzz")
+                        .foregroundColor(.orange)
+                        .frame(width: 20)
+                    Text("settings.idleDetection")
+                }
+            }
+            .toggleStyle(.checkbox)
+            .font(.subheadline)
+            .help(String(localized: "settings.idleDetection.help"))
+
+            if settings.idleDetectionEnabled {
+                HStack {
+                    Text("settings.after")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    TimeStepper(
+                        value: $settings.idleThreshold,
+                        range: 60...1800,
+                        step: 60,
+                        formatter: { String(localized: "settings.minutes \($0 / 60)") }
+                    )
+                    Text("settings.inactivity")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.leading, 28)
+            }
+        }
     }
     #endif
 
     // MARK: - Kalender-Sync
 
     private var calendarSection: some View {
-        Toggle(isOn: $settings.calendarSyncEnabled) {
-            HStack {
-                Image(systemName: "calendar")
-                    .foregroundColor(.red)
-                    .frame(width: 20)
-                Text("Bei Terminen pausieren")
-            }
-        }
-        #if os(macOS)
-        .toggleStyle(.checkbox)
-        #endif
-        .font(.subheadline)
-        .onChange(of: settings.calendarSyncEnabled) { _, newValue in
-            if newValue {
-                Task {
-                    let granted = await CalendarService.shared.requestAccess()
-                    print("Kalender-Berechtigung: \(granted ? "Gewährt" : "Abgelehnt")")
+        Group {
+            if settings.isPro {
+                Toggle(isOn: $settings.calendarSyncEnabled) {
+                    HStack {
+                        Image(systemName: "calendar")
+                            .foregroundColor(.red)
+                            .frame(width: 20)
+                        Text("settings.pauseDuringEvents")
+                    }
                 }
+                #if os(macOS)
+                .toggleStyle(.checkbox)
+                #endif
+                .font(.subheadline)
+                .onChange(of: settings.calendarSyncEnabled) { _, newValue in
+                    if newValue {
+                        Task {
+                            let granted = await CalendarService.shared.requestAccess()
+                            print("Kalender-Berechtigung: \(granted ? "Gewährt" : "Abgelehnt")")
+                        }
+                    }
+                }
+            } else {
+                proLockedButton(icon: "calendar", title: String(localized: "settings.pauseDuringEvents"))
             }
         }
     }
+
+    // MARK: - Geräte-Sync
+
+    private var crossDeviceSyncSection: some View {
+        Group {
+            if settings.isPro {
+                Toggle(isOn: $settings.crossDeviceSyncEnabled) {
+                    HStack {
+                        Image(systemName: "arrow.triangle.2.circlepath")
+                            .foregroundColor(.teal)
+                            .frame(width: 20)
+                        Text("settings.deviceSync")
+                    }
+                }
+                #if os(macOS)
+                .toggleStyle(.checkbox)
+                #endif
+                .font(.subheadline)
+                .help(String(localized: "settings.deviceSync.help"))
+            } else {
+                proLockedButton(icon: "arrow.triangle.2.circlepath", title: String(localized: "settings.deviceSync"))
+            }
+        }
+    }
+
+    // MARK: - Menüleisten-Countdown
+
+    #if os(macOS)
+    private var menuBarCountdownSection: some View {
+        Group {
+            if settings.isPro {
+                Toggle(isOn: $settings.showMenuBarCountdown) {
+                    HStack {
+                        Image(systemName: "timer")
+                            .foregroundColor(.cyan)
+                            .frame(width: 20)
+                        Text("settings.menuBarCountdown")
+                    }
+                }
+                .toggleStyle(.checkbox)
+                .font(.subheadline)
+                .help(String(localized: "settings.menuBarCountdown.help"))
+            } else {
+                proLockedButton(icon: "timer", title: String(localized: "settings.menuBarCountdown"))
+            }
+        }
+    }
+    #endif
 
     // MARK: - Bei Login starten
 
@@ -194,7 +438,7 @@ struct SettingsView: View {
                 Image(systemName: "power")
                     .foregroundColor(.secondary)
                     .frame(width: 20)
-                Text("Bei Login starten")
+                Text("settings.launchAtLogin")
             }
         }
         .toggleStyle(.checkbox)
@@ -219,6 +463,40 @@ struct SettingsView: View {
         }
     }
     #endif
+
+    // MARK: - Pro Locked Helper (macOS)
+
+    private func proLockedButton(icon: String, title: String) -> some View {
+        Button {
+            #if os(macOS)
+            NotificationCenter.default.post(name: .closeMenuPanel, object: nil)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                PaywallWindowController.shared.show()
+            }
+            #endif
+        } label: {
+            HStack {
+                Image(systemName: icon)
+                    .foregroundColor(.secondary)
+                    .frame(width: 20)
+                Text(title)
+                Spacer()
+                HStack(spacing: 3) {
+                    Image(systemName: "lock.fill")
+                        .font(.system(size: 8))
+                    Text("PRO")
+                        .font(.system(size: 9, weight: .bold))
+                }
+                .foregroundColor(.yellow)
+                .padding(.horizontal, 5)
+                .padding(.vertical, 2)
+                .background(Color.yellow.opacity(0.15))
+                .cornerRadius(4)
+            }
+            .font(.subheadline)
+        }
+        .buttonStyle(.plain)
+    }
 }
 
 // MARK: - Time Stepper Component

@@ -54,54 +54,123 @@ struct TimerWidgetEntry: TimelineEntry {
     let timerState: SharedTimerState
 }
 
+// MARK: - Widget Farb-Helfer
+
+private func phaseGradient(for phase: String) -> LinearGradient {
+    switch phase {
+    case "work":
+        return LinearGradient(
+            colors: [Color(red: 0.06, green: 0.1, blue: 0.28), Color(red: 0.12, green: 0.22, blue: 0.55)],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    case "rest":
+        return LinearGradient(
+            colors: [Color(red: 0.05, green: 0.18, blue: 0.12), Color(red: 0.1, green: 0.38, blue: 0.22)],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    default:
+        return LinearGradient(
+            colors: [Color(red: 0.12, green: 0.12, blue: 0.14), Color(red: 0.22, green: 0.22, blue: 0.26)],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+}
+
+private func phaseAccentColor(for phase: String) -> Color {
+    switch phase {
+    case "work": return .cyan
+    case "rest": return .green
+    default: return .gray
+    }
+}
+
 // MARK: - Small Widget View
 
 struct TimerWidgetSmallView: View {
     let entry: TimerWidgetEntry
 
     var body: some View {
-        VStack(spacing: 8) {
-            Image(systemName: iconName)
-                .font(.title)
-                .foregroundColor(phaseColor)
+        VStack(alignment: .leading, spacing: 0) {
+            // App Name oben-links
+            Text("EyeRest")
+                .font(.caption2.bold())
+                .foregroundColor(.white.opacity(0.7))
 
-            if entry.timerState.phase != "idle" && !entry.timerState.isPaused {
-                Text(entry.timerState.endDate, style: .timer)
-                    .font(.title2.monospacedDigit())
-                    .fontWeight(.bold)
-                    .multilineTextAlignment(.center)
-            } else if entry.timerState.isPaused {
-                Text(formattedRemaining)
-                    .font(.title2.monospacedDigit())
-                    .fontWeight(.bold)
+            Spacer()
+
+            if entry.timerState.phase == "idle" {
+                // Idle: Eye-Symbol + Bereit
+                VStack(spacing: 8) {
+                    Image(systemName: "eye")
+                        .font(.system(size: 32))
+                        .foregroundColor(.white.opacity(0.8))
+                    Text("widget.ready")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                }
+                .frame(maxWidth: .infinity)
             } else {
-                Text("--:--")
-                    .font(.title2.monospacedDigit())
-                    .fontWeight(.bold)
-                    .foregroundColor(.secondary)
+                // Active: Timer mittig
+                VStack(spacing: 6) {
+                    if !entry.timerState.isPaused {
+                        Text(entry.timerState.endDate, style: .timer)
+                            .font(.system(size: 28, weight: .bold, design: .rounded))
+                            .monospacedDigit()
+                            .foregroundColor(.white)
+                            .multilineTextAlignment(.center)
+                    } else {
+                        Text(formattedRemaining)
+                            .font(.system(size: 28, weight: .bold, design: .rounded))
+                            .monospacedDigit()
+                            .foregroundColor(.white.opacity(0.7))
+                    }
+                }
+                .frame(maxWidth: .infinity)
             }
 
-            Text(entry.timerState.statusText)
-                .font(.caption)
-                .foregroundColor(.secondary)
+            Spacer()
+
+            // Status + Mini Progress Bar
+            VStack(spacing: 6) {
+                Text(entry.timerState.statusText)
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.8))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                if entry.timerState.phase != "idle" {
+                    // Mini Capsule Progress Bar
+                    GeometryReader { geo in
+                        Capsule()
+                            .fill(.white.opacity(0.15))
+                            .overlay(alignment: .leading) {
+                                Capsule()
+                                    .fill(phaseAccentColor(for: entry.timerState.phase))
+                                    .frame(width: max(4, geo.size.width * progressValue))
+                            }
+                    }
+                    .frame(height: 4)
+                }
+            }
         }
-        .containerBackground(.clear, for: .widget)
+        .containerBackground(for: .widget) {
+            phaseGradient(for: entry.timerState.phase)
+        }
     }
 
-    private var iconName: String {
-        switch entry.timerState.phase {
-        case "work": return entry.timerState.isPaused ? "eye.slash" : "eye"
-        case "rest": return "eye.fill"
-        default: return "eye"
+    private var progressValue: CGFloat {
+        if entry.timerState.isPaused {
+            return CGFloat(entry.timerState.progress)
         }
-    }
-
-    private var phaseColor: Color {
-        switch entry.timerState.phase {
-        case "work": return .blue
-        case "rest": return .green
-        default: return .secondary
-        }
+        guard entry.timerState.endDate > .now else { return 1.0 }
+        let total = entry.timerState.phase == "work"
+            ? Double(entry.timerState.workDuration)
+            : Double(entry.timerState.restDuration)
+        guard total > 0 else { return 0 }
+        let remaining = entry.timerState.endDate.timeIntervalSinceNow
+        return CGFloat(max(0, min(1, (total - remaining) / total)))
     }
 
     private var formattedRemaining: String {
@@ -119,53 +188,81 @@ struct TimerWidgetMediumView: View {
 
     var body: some View {
         HStack(spacing: 16) {
-            // Fortschrittsring
+            // Custom Ring
             ZStack {
-                if entry.timerState.phase != "idle" && !entry.timerState.isPaused && entry.timerState.endDate > .now {
-                    ProgressView(
-                        timerInterval: Date.now...entry.timerState.endDate,
-                        countsDown: true
-                    )
-                    .progressViewStyle(.circular)
-                    .tint(phaseColor)
-                } else {
+                Circle()
+                    .stroke(.white.opacity(0.12), lineWidth: 6)
+
+                if entry.timerState.phase != "idle" {
                     Circle()
-                        .stroke(Color.secondary.opacity(0.2), lineWidth: 6)
+                        .trim(from: 0, to: progressValue)
+                        .stroke(
+                            phaseAccentColor(for: entry.timerState.phase),
+                            style: StrokeStyle(lineWidth: 6, lineCap: .round)
+                        )
+                        .rotationEffect(.degrees(-90))
                 }
 
                 Image(systemName: iconName)
                     .font(.title2)
-                    .foregroundColor(phaseColor)
+                    .foregroundColor(.white.opacity(0.9))
             }
-            .frame(width: 60, height: 60)
+            .frame(width: 64, height: 64)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text("EyeRest")
-                    .font(.headline)
+                    .font(.caption2.bold())
+                    .foregroundColor(.white.opacity(0.6))
 
                 if entry.timerState.phase != "idle" && !entry.timerState.isPaused {
                     Text(entry.timerState.endDate, style: .timer)
-                        .font(.title.monospacedDigit())
-                        .fontWeight(.bold)
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .monospacedDigit()
+                        .foregroundColor(.white)
                 } else if entry.timerState.isPaused {
                     Text(formattedRemaining)
-                        .font(.title.monospacedDigit())
-                        .fontWeight(.bold)
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .monospacedDigit()
+                        .foregroundColor(.white.opacity(0.7))
                 } else {
-                    Text("--:--")
-                        .font(.title.monospacedDigit())
-                        .fontWeight(.bold)
-                        .foregroundColor(.secondary)
+                    Text("widget.ready")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
                 }
 
                 Text(entry.timerState.statusText)
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.white.opacity(0.7))
+
+                // Mini-Statistik
+                HStack(spacing: 4) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.caption2)
+                        .foregroundColor(phaseAccentColor(for: entry.timerState.phase))
+                    Text("widget.todayBreaks \(entry.timerState.completedBreaksToday ?? 0)")
+                        .font(.caption2)
+                        .foregroundColor(.white.opacity(0.5))
+                }
             }
 
             Spacer()
         }
-        .containerBackground(.clear, for: .widget)
+        .containerBackground(for: .widget) {
+            phaseGradient(for: entry.timerState.phase)
+        }
+    }
+
+    private var progressValue: CGFloat {
+        if entry.timerState.isPaused {
+            return CGFloat(entry.timerState.progress)
+        }
+        guard entry.timerState.endDate > .now else { return 1.0 }
+        let total = entry.timerState.phase == "work"
+            ? Double(entry.timerState.workDuration)
+            : Double(entry.timerState.restDuration)
+        guard total > 0 else { return 0 }
+        let remaining = entry.timerState.endDate.timeIntervalSinceNow
+        return CGFloat(max(0, min(1, (total - remaining) / total)))
     }
 
     private var iconName: String {
@@ -173,14 +270,6 @@ struct TimerWidgetMediumView: View {
         case "work": return entry.timerState.isPaused ? "eye.slash" : "eye"
         case "rest": return "eye.fill"
         default: return "eye"
-        }
-    }
-
-    private var phaseColor: Color {
-        switch entry.timerState.phase {
-        case "work": return .blue
-        case "rest": return .green
-        default: return .secondary
         }
     }
 
@@ -202,7 +291,7 @@ struct EyeRestTimerWidget: Widget {
             TimerWidgetEntryView(entry: entry)
         }
         .configurationDisplayName("EyeRest Timer")
-        .description("Zeigt den aktuellen Timer-Status an.")
+        .description(String(localized: "widget.description"))
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }
