@@ -293,6 +293,19 @@
     </div>
 </section>
 
+
+<!-- Waitlist -->
+<section id="waitlist" class="waitlist-section">
+  <h2>Be the first to know</h2>
+  <p>Get notified when EyeRest launches on April 29, 2026.</p>
+  <div id="countdown"></div>
+  <form id="waitlist-form">
+    <input type="email" name="email" placeholder="your@email.com" required>
+    <button type="submit">Notify Me</button>
+  </form>
+  <p id="waitlist-message"></p>
+</section>
+
 <!-- CTA -->
 <section class="cta" id="download">
     <div class="w">
@@ -345,6 +358,46 @@ document.querySelectorAll('.n-links a').forEach(a =>
 );
 
 setLang(L);
+</script>
+
+<script>
+// Countdown
+function updateCountdown() {
+  const launch = new Date('2026-04-29T00:00:00');
+  const now = new Date();
+  const diff = launch - now;
+  if (diff <= 0) { document.getElementById('countdown').textContent = '🎉 Available now!'; return; }
+  const d = Math.floor(diff / 86400000);
+  const h = Math.floor((diff % 86400000) / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  document.getElementById('countdown').textContent = `${d} days ${h}h ${m}m until launch`;
+  setTimeout(updateCountdown, 60000);
+}
+updateCountdown();
+
+// Waitlist form
+document.getElementById('waitlist-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = e.target.email.value;
+  const msg = document.getElementById('waitlist-message');
+  try {
+    const formData = new FormData();
+    formData.append('email', email);
+    formData.append('l', '76673406-d4ea-4fbb-93bc-2e524a9e1d6b');
+    const res = await fetch('https://listmonk.devsalah.com/subscription/form', {
+      method: 'POST',
+      body: formData
+    });
+    if (res.ok) {
+      msg.textContent = '✅ You\'re on the list!';
+      e.target.reset();
+    } else {
+      msg.textContent = '❌ Something went wrong. Please try again.';
+    }
+  } catch {
+    msg.textContent = '❌ Network error. Please try again.';
+  }
+});
 </script>
 </body>
 </html>
