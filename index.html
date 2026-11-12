@@ -133,6 +133,21 @@
     </div>
 </section>
 
+<!-- Video: echte Aufnahme der iPhone-App -->
+<section class="demo" id="demo">
+    <div class="w">
+        <div class="demo-text v">
+            <h2 data-en="See a break in action" data-de="So sieht eine Pause aus">See a break in action</h2>
+            <p data-en="Real footage from the iPhone app: the work timer runs out, a calm 20-second break follows, then you are back at work." data-de="Echte Aufnahme aus der iPhone-App: Der Arbeits-Timer läuft ab, es folgen 20 ruhige Sekunden Pause, dann geht es weiter.">Real footage from the iPhone app: the work timer runs out, a calm 20-second break follows, then you are back at work.</p>
+        </div>
+        <div class="demo-phone v">
+            <video id="demo-video" muted loop playsinline autoplay preload="metadata" width="540" height="1170" poster="media/poster-en.jpg" aria-label="Blinzel on iPhone">
+                <source src="media/blinzel-en.mp4" type="video/mp4">
+            </video>
+        </div>
+    </div>
+</section>
+
 <!-- 20-20-20 Rule -->
 <section class="rule" id="rule">
     <div class="w">
@@ -373,6 +388,15 @@ function setLang(l) {
         if (t) e.innerHTML = t;
     });
     applyAppStoreUrl();
+    const vid = document.getElementById('demo-video');
+    if (vid && vid.dataset.lang !== l) {
+        vid.dataset.lang = l;
+        vid.poster = 'media/poster-' + l + '.jpg';
+        vid.setAttribute('aria-label', l === 'de' ? 'Blinzel auf dem iPhone' : 'Blinzel on iPhone');
+        vid.src = 'media/blinzel-' + l + '.mp4';
+        vid.load();
+        const p = vid.play(); if (p && p.catch) p.catch(() => {});
+    }
 }
 
 // Scroll reveal
