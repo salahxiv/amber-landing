@@ -11,9 +11,9 @@
   </defs>
   <rect width="1200" height="630" fill="#08090d"/>
   <rect width="1200" height="630" fill="url(#glow)"/>
-  <text x="600" y="230" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="76" font-weight="800" fill="url(#grad)">Amber</text>
-  <text x="600" y="310" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="36" font-weight="600" fill="#e8ecf4">Smart Eye Break Reminders</text>
+  <text x="600" y="230" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="76" font-weight="800" fill="url(#grad)">Blinzel</text>
+  <text x="600" y="310" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="36" font-weight="600" fill="#e8ecf4">Eye Break Reminder</text>
   <text x="600" y="375" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="22" font-weight="400" fill="rgba(232,236,244,0.55)">The 20-20-20 rule, automated. For Mac &amp; iPhone.</text>
   <rect x="475" y="420" width="250" height="48" rx="10" fill="url(#grad)"/>
-  <text x="600" y="451" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="16" font-weight="600" fill="#fff">Join the waitlist</text>
+  <text x="600" y="451" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="16" font-weight="600" fill="#fff">In preparation</text>
 </svg>
